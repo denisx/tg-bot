@@ -1,0 +1,36 @@
+{
+	"name": "tg-bot",
+	"version": "0.0.1",
+	"description": "Telegram bot core",
+	"main": "main.js",
+	"dependencies": {
+		"botanio": ">=0.0.6",
+		"db-mysql-async": "github:denisx/db-mysql-async",
+		"telegraf": ">=3.10.1",
+		"node-emoji": ">=1.8.1",
+		"request": ">=2.81.0"
+	},
+	"devDependencies": {
+		"eslint": ">=4.5.0",
+		"grunt": ">=1.0.1",
+		"gruntify-eslint": ">=4.0.0",
+		"braces": ">=2.2.2",
+		"matchdep": ">=2.0.0",
+		"eslint-config-airbnb": ">=15.1.0",
+		"eslint-plugin-jsx-a11y": ">=6.0.2",
+		"eslint-plugin-import": ">=2.7.0",
+		"eslint-plugin-react": ">=7.3.0",
+		"babel-eslint": ">=7.2.3",
+		"eslint-config-standart": ">=0.2.0",
+		"eslint-plugin-promise": ">=3.5.0",
+		"eslint-plugin-standard": ">=3.0.1"
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node server.js"
+	},
+	"repository": {},
+	"author": "Denis Khripkov",
+	"license": "ISC",
+	"bugs": {}
+}

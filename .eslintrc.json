@@ -1,0 +1,41 @@
+{
+	"parser": "babel-eslint",
+	"parserOptions": {
+		"ecmaVersion": 6,
+		"sourceType": "module",
+		"ecmaFeatures": {
+			"experimentalObjectRestSpread": true
+		}
+	},
+	"env": {
+		"browser": true,
+		"es6": true,
+		"commonjs": true
+	},
+	"extends": [
+		"standart",
+		"airbnb"
+	],
+	"rules": {
+		"indent": ["warn", "tab", { "SwitchCase": 1 }],
+		"no-tabs": "off",
+		"comma-dangle": ["error", "never"],
+		"no-console": "off",
+		"no-debugger": "off",
+
+		"max-len": ["warn", 120],
+		"new-cap": ["error", { "newIsCapExceptionPattern": "[^a-z]*$" }],
+
+		"semi": ["error", "never"],
+		"no-underscore-dangle": "warn",
+		"jsx-a11y/href-no-hash": "off",
+		"global-require": "warn",
+		"space-before-function-paren": ["error", "never"],
+		"func-names": ["error", "as-needed"],
+		"consistent-return": "off",
+		"class-methods-use-this": "off",
+		"arrow-body-style": "off",
+		"no-plusplus": "off"
+
+	}
+}

@@ -26,17 +26,21 @@ function f(id) {
 				menu.lang = menu.command
 				menu.texts = texts[menu.lang]
 				menu.changeLang = true
+
 				self.services.saveLang({
 					id: menu.msg.from.id,
 					menu
 				})
+
 				menu.path = 'start'
 				menu.dropCommand = true
+
 				return self.parseText(id)
 			}
 
 			menu.answer = menu.texts.langInfo
 			menu.answer += texts.vars.newLine
+
 			Object.keys(texts.langList).forEach((lang) => {
 				menu.answer += `start${lang}texts.vars.newLine`
 			})

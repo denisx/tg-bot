@@ -42,6 +42,7 @@ class Menu {
 				lang = session.lang
 				// save lang
 				console.log(122)
+
 				services.saveLang(id, app)
 					.then(() => {
 						console.log(123, 'send feedback')

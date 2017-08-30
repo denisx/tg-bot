@@ -7,7 +7,7 @@ class Menu {
 		this.init(opts)
 	}
 
-	static async init(opts) {
+	async init(opts) {
 		const app = opts.app
 		const session = opts.session
 		const id = session.id
@@ -21,6 +21,7 @@ class Menu {
 			session.ping = new Date()
 
 			const userSettings = await services.getSettings(id)[0]
+
 			if (userSettings) {
 				// find a user
 				console.log(11, userSettings)

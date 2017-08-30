@@ -1,4 +1,4 @@
-const t = require('./menu')
+const tree = require('./tree')
 
 const texts = global.texts
 const errLog = global.errLog
@@ -11,7 +11,7 @@ class Menu {
 	}
 
 	static get(name) {
-		return t[name]
+		return tree[name]
 	}
 
 	getCommands() {
@@ -30,8 +30,10 @@ class Menu {
 		this.menu = {}
 		const menu = this.menu
 
-		Object.keys(t).filter(key => !t[key].noFile).forEach((key) => {
-			menu[key] = require(`menu/${key}`) // eslint-disable-line import/no-dynamic-require
+		Object.keys(tree).filter(key => !tree[key].noFile).forEach((key) => {
+			const path = `../menu/${key}`
+
+			menu[key] = require(path) // eslint-disable-line import/no-dynamic-require
 		})
 
 		this.inited = true
@@ -46,12 +48,12 @@ class Menu {
 	}
 
 	checkInlineAccepted(state, abbr) {
-		if (!t[state]) {
-			return errLog('getAccepted', 'nothing state = ', state)
+		if (!tree[state]) {
+			return errLog('checkInlineAccepted', 'nothing state = ', state)
 		}
 
 		let accepted = false
-		const inline = t[state].inline || []
+		const inline = tree[state].inline || []
 
 		inline.forEach((line) => {
 			line.forEach((el) => {
@@ -65,12 +67,12 @@ class Menu {
 	}
 
 	checkKeyboardAccepted(lang, state, text) {
-		if (!t[state]) {
-			return errLog('getAccepted', 'nothing state = ', state)
+		if (!tree[state]) {
+			return errLog('checkKeyboardAccepted', 'nothing state = ', state)
 		}
 
 		let accepted = false
-		const inline = t[state].keyboard || []
+		const inline = tree[state].keyboard || []
 
 		inline.forEach((line) => {
 			line.forEach((el) => {

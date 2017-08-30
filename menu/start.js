@@ -6,6 +6,7 @@ class Menu {
 	constructor(opts) {
 		this.app = opts.app
 		this.session = opts.session
+
 		return this.init()
 	}
 

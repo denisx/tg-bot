@@ -7,11 +7,13 @@ function f(id) {
 
 	if (!menu) {
 		console.error(services.getDT(), 'id=', id, 'no menu')
+
 		return
 	}
 
 	if (!menu.msg) {
 		console.error(services.getDT(), id, 'no menu.msg')
+
 		return
 	}
 
@@ -55,7 +57,9 @@ function f(id) {
 
 	if (menu.msg.contact && menu.msg.contact.phone_number &&
 		menu.msg.contact.user_id === menu.msg.from.id) {
+
 		const phone = menu.msg.contact.phone_number.toString().replace(/^\+?(\d+)$/, '$1')
+
 		services.saveMobile({
 			id: menu.msg.from.id,
 			menu,

@@ -2,16 +2,12 @@ const Telegraf = require('telegraf')
 const textsApp = require('../lang/text')
 const menuApp = require('../lang/menu')
 const servicesApp = require('../services')
-const { Extra, Markup } = require('telegraf/lib')
+// const { Extra, Markup } = require('telegraf/lib')
 
 const errLog = global.errLog
 // const db = global.db
 
 // const NAME = 'bot.js'
-
-// denisx 32463744
-// anfomur 73104664
-// darya 299668213
 
 class App {
 	constructor(opts) {
@@ -51,20 +47,21 @@ class App {
 	}
 
 	init() {
-		this.session = {}
+		this.sessions = {}
 		this.storage = {}
 		this.timer()
 
 		this.bot = new Telegraf(this.opts.bot.token)
 		const bot = this.bot
-		this.Extra = Extra
-		this.Markup = Markup
+		// this.Extra = Extra
+		// this.Markup = Markup
 
-		this.dataCache = {}
+		// this.dataCache = {}
 		const botanToken = this.opts.botan.token
 
 		bot.use((ctx) => {
 			let msg
+
 			if (ctx.update) {
 				msg = ctx.update.message || ctx.update.callback_query.message || null
 			} else {
@@ -72,7 +69,7 @@ class App {
 			}
 
 			if (!msg) {
-				errLog('empty ctx.update', ctx.update)
+				errLog('empty inside ctx.update, ctx.update=', ctx.update)
 			}
 
 			if (this.opts.bot.dev) {
@@ -112,8 +109,9 @@ class App {
 			this.storage[id] = this.storage[id] || []
 			this.storage[id].push({ ctx, msg })
 
-			this.session[id] = this.session[id] || { id }
-			const session = this.session[id]
+			this.sessions[id] = this.sessions[id] || { id }
+
+			const session = this.sessions[id]
 
 			session.data = session.data || []
 			this.botInput(session)
@@ -149,8 +147,8 @@ class App {
 		session.isCallbackQuery = !!ctx.update.callback_query
 		session.inInput = true
 		session.start = new Date()
-
 		session.userInput = session.userInput || {}
+
 		const userInput = session.userInput
 
 		if (msg.text) {
@@ -180,6 +178,7 @@ class App {
 					type: 'sendChatAction'
 				})
 			}
+
 			session.cbData = null
 		}
 
@@ -200,37 +199,9 @@ class App {
 		}
 	}
 
-	preloadUrls(urls) {
-		if (!Array.isArray(urls)) {
-			return errLog('not an array', urls)
-		}
-		const load = () => {
-			urls.forEach((url) => {
-				this.bot.telegram.sendMessage(this.opts.preloadGroup.chatId, url)
-					.catch(err => errLog(err))
-			})
-		}
-		setTimeout(load, 300)
-	}
-
-	// reuse () {
-	// 	console.log('starting bot.reuse()')
-	// 	Object.keys(this.session).forEach((id) => {
-	// 		setTimeout(() => {
-	// 			this.send(session)
-	// 		}, 20)
-	// 	})
-	// }
-
-	/*
-	 send, reply, next, catchAnswer
-	 */
-
-	// this.send(session, {ctx, type: 'sendMessage', data: [1]})
 	/**
 	 * prepare and format send object
 	 */
-
 	send(oldSession, opts) {
 		const session = Object.assign({}, oldSession)
 
@@ -278,17 +249,12 @@ class App {
 			})
 		}
 
-		// console.log(111, session.inWork,
-		// 	session.data.length,
-		// 	session.inInput,
-		// 	this.storage[session.id].length
-		// )
-
 		if (!(!session.inWork && session.data.length)) {
 			if (!session.data.length) {
 				// session.inInput = false
 				this.botInput(session)
 			}
+
 			return
 		}
 
@@ -325,7 +291,6 @@ class App {
 
 		if (replyName && ['sendMessage'].indexOf(item.type) > -1) {
 			const data = item.data
-
 			let dataToSend
 			let dataToSend2
 
@@ -400,6 +365,7 @@ class App {
 
 		if (!session.hasAnswerCallbackQuery && new Date() - session.start > this.answerCallbackQueryDelay) {
 			session.hasAnswerCallbackQuery = true
+
 			this.send(session, {
 				type: 'answerCallbackQuery'
 			})
@@ -409,6 +375,7 @@ class App {
 		switch (func) {
 			case 'answerCallbackQuery':
 				session.hasAnswerCallbackQuery = true
+
 				if (item.callbackQueryId) {
 					// console.log(11, item, text)
 					//										   callbackQueryId, text, url, showAlert, cacheTime
@@ -444,13 +411,13 @@ class App {
 	}
 
 	next(session, res, text, markup) {
-		// const session = this.session[id]
+		// const session = this.sessions[id]
 		this.catchAnswer(session, res, text, markup)
 	}
 
 	catchAnswer(oldSession, res, text, markup) {
 		const session = Object.assign({}, oldSession)
-		// const session = this.session[id]
+		// const session = this.sessions[id]
 
 		// console.log()
 		// console.log()
@@ -468,7 +435,7 @@ class App {
 	static dropUserText(oldSession) {
 		const session = Object.assign({}, oldSession)
 
-		// const session = this.session[id]
+		// const session = this.sessions[id]
 		session.userInput = {}
 		session.dropUserText = false
 
@@ -478,7 +445,7 @@ class App {
 	runState(oldSession) {
 		const session = Object.assign({}, oldSession)
 
-		// const session = this.session[id]
+		// const session = this.sessions[id]
 		if (!session) {
 			return errLog('bot.js', 'no session')
 		}
@@ -577,16 +544,18 @@ class App {
 			was: 0
 		}
 
-		Object.keys(this.session).forEach((key) => {
-			const session = this.session[key]
+		Object.keys(this.sessions).forEach((key) => {
+			const session = this.sessions[key]
 
 			// if (now - this.userDelay > session.ping) {
 			if (now - this.userDelay > session.ping) {
 				count.killed++
+
 				if (session.inWork) {
 					errLog('timer', 'still inWork', key)
 				}
-				delete this.session[key]
+
+				delete this.sessions[key]
 			} else {
 				count.session++
 			}
@@ -598,6 +567,7 @@ class App {
 				session.inWork = false
 				this.send(session)
 			}
+
 			count.was++
 		})
 
@@ -614,5 +584,6 @@ module.exports = (opts) => {
 	if (!opts) {
 		return errLog('bot', 'exports', 'no opts')
 	}
+
 	return new App(opts)
 }

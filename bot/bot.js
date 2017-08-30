@@ -1,7 +1,7 @@
 const Telegraf = require('telegraf')
-const texts = require('../lang/text')
-const menu = require('../lang/menu')
-const services = require('../services')
+const textsApp = require('../lang/text')
+const menuApp = require('../lang/menu')
+const servicesApp = require('../services')
 const { Extra, Markup } = require('telegraf/lib')
 
 const errLog = global.errLog
@@ -20,7 +20,7 @@ class App {
 		this.userDelay = /* 20 min */ 20 * 60 * 1000
 		this.workDelay = /* 1 min */ 1.1 * 60 * 1000
 		this.answerCallbackQueryDelay = 5 * 1000
-		this.services = services({ settings: opts, app: this })
+		this.services = servicesApp({ settings: opts, app: this })
 
 		// this.botKey = this.services.getBotKey(opts.bot.username)
 		this.botKey = opts.botKey || 0
@@ -43,8 +43,8 @@ class App {
 			gzip: true
 		}
 
-		this.texts = texts(this.defaultOpts)
-		this.menu = menu(this.defaultOpts)
+		this.texts = textsApp(this.defaultOpts)
+		this.menu = menuApp(this.defaultOpts)
 
 		console.log(this.services.getDT(), 'started bot', opts.bot.username)
 		console.log()
@@ -186,14 +186,14 @@ class App {
 		if (msg.chat.type !== 'private') {
 			return this.send(session, {
 				type: 'sendMessage',
-				data: [texts.getText(this.defaultLang, 'groupInfo', {
+				data: [this.texts.getText(this.defaultLang, 'groupInfo', {
 					line: this.defaultOpts.line,
 					botName: this.opts.bot.username
 				})]
 			})
 		}
 
-		const stateFunc = menu.getMenu('default')
+		const stateFunc = this.menu.getMenu('default')
 
 		if (stateFunc) {
 			stateFunc({ session, app: this })
@@ -354,9 +354,10 @@ class App {
 			this.reply(session, item, replyName)
 		}
 	}
-		/*
-		 * use telegram-framework here, send
-		 */
+
+	/*
+	 * use telegram-framework here, send
+	 */
 	reply(oldSession, item, func) {
 		const session = Object.assign({}, oldSession)
 
@@ -464,7 +465,7 @@ class App {
 		this.send(session)
 	}
 
-	dropUserText(oldSession) {
+	static dropUserText(oldSession) {
 		const session = Object.assign({}, oldSession)
 
 		// const session = this.session[id]
@@ -495,7 +496,7 @@ class App {
 
 		if (userInput.text) {
 			// need for '/commands' ?
-			if (!session.dropUserText && menu.checkCommand(userInput.command)) { //  && !session.priority
+			if (!session.dropUserText && this.menu.checkCommand(userInput.command)) { //  && !session.priority
 				session.stateOld = session.state
 				session.state = userInput.command
 				session.dropUserText = true
@@ -506,7 +507,7 @@ class App {
 			if (session.lang) {
 				// check keyboard callback
 				let textState
-				[textState, newState] = menu.checkKeyboardAccepted(session.lang, session.state, userInput.text)
+				[textState, newState] = this.menu.checkKeyboardAccepted(session.lang, session.state, userInput.text)
 				textState += ''
 
 				if (newState) {
@@ -515,7 +516,6 @@ class App {
 						session.state = newState
 						session.dropUserText = true
 						this.dropUserText(session)
-						// console.log('state changed (3) from', session.stateOld, 'from', newState )
 					}
 				} else {
 					onceState = textState
@@ -527,11 +527,12 @@ class App {
 			this.dropUserText(session)
 		}
 
-		let stateFunc = menu.getMenu(session.state)
+		let stateFunc = this.menu.getMenu(session.state)
+
 		if (!stateFunc) {
 			session.stateOld = session.state
 			session.state = this.defaultState
-			stateFunc = menu.getMenu(session.state)
+			stateFunc = this.menu.getMenu(session.state)
 			// console.log('state changed (2) from', session.stateOld, 'to', this.defaultState)
 		}
 
@@ -553,13 +554,13 @@ class App {
 			if (onceState) {
 				this.send(session, {
 					type: 'sendMessage',
-					data: texts.getFrameText(session.lang, onceState)
+					data: this.texts.getFrameText(session.lang, onceState)
 				})
 			}
 
 			this.send(session, {
 				type: 'sendMessage',
-				data: texts.getFrameText(session.lang, session.state)
+				data: this.texts.getFrameText(session.lang, session.state)
 			})
 
 			session.inInput = false

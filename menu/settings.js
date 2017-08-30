@@ -1,14 +1,16 @@
-const NAME = 'settings.js'
+console.log('menu/settings')
 
 class Menu {
-	constructor (opts) {
-		const id = opts.id
-		const app = opts.app
-		const session = app.session[id]
+	constructor() {
+		// const id = opts.id
+		// const app = opts.app
+		// const session = app.session[id]
 
 		// const lang = session.set.lang
 		// const state = session.set.state
 		// const ctx = session.ctx
+
+		console.log('settings file')
 
 		// app.send(id, {
 		// 	ctx,
@@ -16,7 +18,7 @@ class Menu {
 		// 	data: texts.getFrameText(lang, state)
 		// })
 
-		console.log('settings.js', state)
+		// console.log('settings.js', state)
 
 		// session.set.stateOld = session.set.state
 		// session.set.state = 'chooseLang'

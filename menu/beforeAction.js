@@ -1,92 +1,75 @@
-function f (id) {
-	var self = this
-	// self.botName = botName
-	// console.log(999, self.dt === self.services.getDT)
+console.log('menu/before action')
 
-	// if (!self.onStartDone) {
-	// 	self.onStartDone = true
-		// self.services.onStart(self)
-		// self.services.onStart()
-	// }
+const services = global.services
 
-	var menu = self.menu[id]
+function f(id) {
+	const menu = this.menu[id]
+
 	if (!menu) {
-		console.error(self.services.getDT(), 'id=', id, 'no menu')
+		console.error(services.getDT(), 'id=', id, 'no menu')
 		return
 	}
+
 	if (!menu.msg) {
-		console.error(self.services.getDT(), id, 'no menu.msg')
+		console.error(services.getDT(), id, 'no menu.msg')
 		return
 	}
+
 	if (!menu.hasSession) {
 		menu.hasSession = true
-		let botKey = 0
-		switch (self.botName) {
-			case 'Antiparkon':
-				botKey = 1
-				break
-			case 'Avinfocar':
-				botKey = 2
-				break
-			case 'MotorChat':
-				botKey = 3
-				break
-		}
-		self.services.saveUser({
-				id: menu.msg.from.id,
-				menu: menu,
-				botKey: botKey
-			})
-			.catch((err) => {
-				console.error(self.services.getDT(), id, 'saveUser', 'err', err)
-			})
-		menu.hasBanned = false
-		self.services.getBanned({
-			userId: menu.msg.from.id,
-			menu: menu
+
+		services.saveUser({
+			id: menu.msg.from.id,
+			menu
 		})
-		/**
-		 * @param {Object} row
-		 * @param {int} row.banned
-		 */
+			.catch((err) => {
+				console.error(services.getDT(), id, 'saveUser', 'err', err)
+			})
+
+		menu.hasBanned = false
+		services.getBanned({
+			userId: menu.msg.from.id,
+			menu
+		})
 			.then((row) => {
 				self.menu[id].hasBanned = (row && row.banned)
 			})
 			.catch((err) => {
-				console.error(self.services.getDT(), 'getBanned', 'err', query, err)
+				console.error(services.getDT(), 'getBanned', 'err', err)
 			})
-
 	}
+
 	if (!menu.hasMobileAuth) {
 		menu.hasMobileAuth = false
-		self.services.getMobileAuth({
-				id: menu.msg.from.id,
-				menu: menu
-			})
+		services.getMobileAuth({
+			id: menu.msg.from.id,
+			menu
+		})
 			.then((result) => {
 				self.menu[id].hasMobileAuth = (result)
 			})
 			.catch((err) => {
-				console.error(self.services.getDT(), id, 'getMobileAuth', 'err', err)
+				console.error(services.getDT(), id, 'getMobileAuth', 'err', err)
 			})
 	}
-	if (menu.msg.contact && menu.msg.contact.phone_number && menu.msg.contact.user_id == menu.msg.from.id) {
 
-		let phone = menu.msg.contact.phone_number.toString().replace(/^\+?(\d+)$/, '$1')
-		self.services.saveMobile({
-				id: menu.msg.from.id,
-				menu: menu,
-				phoneNumber: phone,
-				own: true
-			})
+	if (menu.msg.contact && menu.msg.contact.phone_number &&
+		menu.msg.contact.user_id === menu.msg.from.id) {
+		const phone = menu.msg.contact.phone_number.toString().replace(/^\+?(\d+)$/, '$1')
+		services.saveMobile({
+			id: menu.msg.from.id,
+			menu,
+			phoneNumber: phone,
+			own: true
+		})
 			.then((result) => {
 				self.menu[id].hasMobileAuth = (result)
 			})
 			.catch((err) => {
-				console.error(self.services.getDT(), 'saveMobile', 'err', err)
+				console.error(services.getDT(), 'saveMobile', 'err', err)
 			})
 	}
-	// console.log(3, menu.hasBanned, id)
+
 	if (menu.hasBanned) {
 		// console.log(4)
 		menu.answer = '--- === YOU ARE BANNED *<;] --- === \n'

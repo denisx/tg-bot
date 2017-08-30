@@ -1,6 +1,5 @@
-// const NAME = 'default.js'
-// const errLog = global.errLog
-// const db = global.db
+console.log('menu/default')
+
 const services = global.services
 
 class Menu {
@@ -8,7 +7,7 @@ class Menu {
 		this.init(opts)
 	}
 
-	async init(opts) {
+	static async init(opts) {
 		const app = opts.app
 		const session = opts.session
 		const id = session.id
@@ -37,34 +36,6 @@ class Menu {
 		}
 
 		app.runState(session)
-
-		// services.getSettings(id)
-		// 	.then((rows) => {
-		//
-		// 	if (rows.length) { // find a user
-		// 		Object.assign(session, rows[0])
-		// 		app.runState(session)
-		// 	} else {
-		// 		session.lang = app.defaultLang
-		// 		session.state = app.defaultState
-		//
-		// 		// working code
-		// 		// stateOld: app.defaultState,
-		// 		// state: 'chooseLang',
-		// 		// dropUserText: true
-		// 		// // priority: 1
-		// 		console.log(services.getDT(), id, 'new user', session.lang, session.state)
-		// 		services.saveUser(id)
-		// 		app.runState(session)
-		// 	}
-		// })
-		// .catch((err) => {
-		// 	errLog('bot.js', 'getSettings', err)
-		// 	session.lang = app.defaultLang
-		// 	session.state = app.defaultState
-		// 	app.runState(session)
-		// })
-		// }
 	}
 }
 

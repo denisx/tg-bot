@@ -35,7 +35,7 @@
 		"consistent-return": "off",
 		"class-methods-use-this": "off",
 		"arrow-body-style": "off",
-		"no-plusplus": "off"
-
+		"no-plusplus": "off",
+		"no-template-curly-in-string": "off"
 	}
 }

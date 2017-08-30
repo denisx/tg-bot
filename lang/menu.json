@@ -1,0 +1,48 @@
+{
+	"default": {},
+
+	"start": {
+		"text": [
+			"start"
+		],
+		"keyboard": [
+			[
+				"likes"
+			]
+		]
+	},
+
+	"chooseLang": {
+		"text": ["hi", "chooseLang"],
+		"inline": [
+			[
+				[
+					"ru",
+					"ru"
+				],
+				[
+					"en",
+					"en"
+				]
+			]
+		],
+		"keyboard": [
+			[
+				[
+					"home",
+					"start"
+				]
+			]
+		]
+	},
+
+	"settings": {},
+
+	"likes": {
+		"text": [
+			"likesInfo"
+		],
+		"noFile": 1,
+		"webPreview": false
+	}
+}

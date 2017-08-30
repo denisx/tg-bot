@@ -1,15 +1,19 @@
-const NAME = 'chooseLang.js'
+console.log('menu/choose lang')
+
+const services = global.services
+const errLog = global.errLog
+const texts = global.texts
+const menu = global.menu
 
 class Menu {
-	constructor (opts) {
-		DEV && console.log(NAME)
+	constructor(opts) {
 		const id = opts.id
 		const app = opts.app
-		const session = app.session[id]
-
-		// delete session.priority
+		this.session = app.session[id]
+		const session = this.session
 
 		let saveDefault
+
 		if (!session.lang) {
 			session.lang = app.defaultLang
 			saveDefault = true
@@ -34,40 +38,38 @@ class Menu {
 
 		if (cbq) {
 			if (menu.checkInlineAccepted(state, cbq.data)) {
-				lang = session.lang = cbq.data
+				session.lang = cbq.data
+				lang = session.lang
 				// save lang
 				console.log(122)
 				services.saveLang(id, app)
 					.then(() => {
 						console.log(123, 'send feedback')
-						DEV && log(NAME, 'getText', lang)
 						app.send(id, {
 							ctx,
 							type: 'sendMessage',
-							data: texts.getText(lang, 'saveLangOK', {lang: texts.getText(lang, lang)})
+							data: texts.getText(lang, 'saveLangOK', { lang: texts.getText(lang, lang) })
 						})
 						session.dropUserText = true
 						session.state = 'start'
 						app.runState(id)
 					})
-					.catch(err => {
-						console.log(124)
-						errLog('chooseLang.js, save new lang', lang, err)})
+					.catch((err) => {
+						errLog('chooseLang.js, save new lang', lang, err)
+					})
 			} else {
 				errLog('chooseLang', 'unknown callback', cbq.data)
 			}
+		} else if (userInput.text && !menu.checkCommand(userInput.command)) {
+			session.stateOld = session.state
+			session.state = 'start'
+			app.runState(id)
 		} else {
-			if (userInput.text && !menu.checkCommand(userInput.command)) {
-				session.stateOld = session.state
-				session.state = 'start'
-				app.runState(id)
-			} else {
-				app.send(id, {
-					ctx,
-					type: 'sendMessage',
-					data: textFrame
-				})
-			}
+			app.send(id, {
+				ctx,
+				type: 'sendMessage',
+				data: textFrame
+			})
 		}
 	}
 }
@@ -75,9 +77,3 @@ class Menu {
 module.exports = (opts) => {
 	return new Menu(opts)
 }
-
-// /start
-// /help
-// /settings
-// /stop
-// /commands

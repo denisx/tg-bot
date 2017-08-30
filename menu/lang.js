@@ -1,38 +1,46 @@
-function f (id) {
-	var self = this
-	var menu = self.menu[id]
+console.log('menu/lang')
+
+const texts = global.texts
+
+function f(id) {
+	const menu = self.menu[id]
+	this.menu = menu
 	console.log()
 	console.log('on lang', menu.userText)
 	menu.answer = ''
 	menu.keyboardPath = 'lang'
+
 	switch (menu.command) {
-		case 'home':
+		case 'home': {
 			menu.path = 'start'
 			menu.dropCommand = true
 			return self.parseText(id)
-		case 'back':
+		}
+		case 'back': {
 			menu.path = 'start'
 			menu.dropCommand = true
 			return self.parseText(id)
-		default:
+		}
+		default: {
 			if (texts.langList[menu.command]) {
 				menu.lang = menu.command
 				menu.texts = texts[menu.lang]
 				menu.changeLang = true
 				self.services.saveLang({
 					id: menu.msg.from.id,
-					menu: menu
+					menu
 				})
 				menu.path = 'start'
 				menu.dropCommand = true
 				return self.parseText(id)
-			} else {
-				menu.answer = menu.texts.langInfo
-				menu.answer += texts.vars.newLine
-				Object.keys(texts.langList).forEach((lang) => {
-					menu.answer += 'start' + lang + texts.vars.newLine
-				})
 			}
+
+			menu.answer = menu.texts.langInfo
+			menu.answer += texts.vars.newLine
+			Object.keys(texts.langList).forEach((lang) => {
+				menu.answer += `start${lang}texts.vars.newLine`
+			})
+		}
 	}
 	self.commandAnswer(id)
 }

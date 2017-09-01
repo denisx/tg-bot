@@ -1,4 +1,4 @@
-const NAME = 'services.js'
+console.log('services.js')
 
 const request = require('request')
 const fs = require('fs')
@@ -32,8 +32,9 @@ class Services {
 		const app = this.app
 		const session = app.session[id]
 		const msg = session.msg
-		const query = `SELECT lang, banned, state FROM user 
-			WHERE chatId = ${msg.chat.id} AND userId = ${msg.from.id}  
+
+		const query = `SELECT lang, banned, state FROM user
+			WHERE chatId = ${msg.chat.id} AND userId = ${msg.from.id}
 			LIMIT 1`
 
 		const resSettings = await db
@@ -47,10 +48,11 @@ class Services {
 		const app = this.app
 		const session = app.session[id]
 
-		const query = `UPDATE \`user\` 
+		const query = `UPDATE \`user\`
 			SET \`state\` = ${db.escape(session.state)},
 				\`updated\` = now()
-			WHERE \`chatId\` = ${session.msg.chat.id} `
+			WHERE \`chatId\` = ${session.msg.chat.id}`
+
 		return db.sql(query).catch(err => errLog('saveState', query, err))
 	}
 
@@ -58,7 +60,7 @@ class Services {
 		const app = this.app
 		const session = app.session[id]
 
-		const query = `UPDATE \`user\` 
+		const query = `UPDATE \`user\`
 			SET \`lang\` = ${db.escape(session.lang)},
 				\`updated\` = now()
 			WHERE \`chatId\` = ${session.msg.chat.id}`
@@ -74,34 +76,34 @@ class Services {
 		const query = `INSERT IGNORE INTO \`user\`
 			(
 			guid,
-			userId, 
+			userId,
 			chatId,
-			lang, 
+			lang,
 			
-			userFirstName, 
-			userLastName, 
-			userUsername, 
+			userFirstName,
+			userLastName,
+			userUsername,
 			systemLang,
 			isBot,
 			
-			created, 
-			updated, 
+			created,
+			updated,
 			state)
-			 
+			
 			VALUES (
 			UUID(),
-			${msg.from.id}, 
+			${msg.from.id},
 			${msg.chat.id},
 			${db.escape(session.lang || '')},
-			 
-			${db.escape(msg.from.first_name || '')}, 
-			${db.escape(msg.from.last_name || '')}, 
+			
+			${db.escape(msg.from.first_name || '')},
+			${db.escape(msg.from.last_name || '')},
 			${db.escape(msg.from.username || '')},
 			${db.escape(msg.from.language_code || '')},
 			${(msg.from.is_bot) ? 1 : 0},
 			
-			now(), 
-			now(), 
+			now(),
+			now(),
 			${db.escape(session.state)}
 			)`
 
@@ -141,6 +143,7 @@ class Services {
 
 	getDT(dt) {
 		const now = dt ? new Date(dt) : new Date()
+
 		return [
 			now.getFullYear(), '-',
 			`0${now.getMonth() + 1}`.slice(-2), '-',

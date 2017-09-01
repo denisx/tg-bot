@@ -29,6 +29,7 @@ function f(id) {
 			})
 
 		menu.hasBanned = false
+
 		services.getBanned({
 			userId: menu.msg.from.id,
 			menu
@@ -43,6 +44,7 @@ function f(id) {
 
 	if (!menu.hasMobileAuth) {
 		menu.hasMobileAuth = false
+
 		services.getMobileAuth({
 			id: menu.msg.from.id,
 			menu
@@ -57,7 +59,6 @@ function f(id) {
 
 	if (menu.msg.contact && menu.msg.contact.phone_number &&
 		menu.msg.contact.user_id === menu.msg.from.id) {
-
 		const phone = menu.msg.contact.phone_number.toString().replace(/^\+?(\d+)$/, '$1')
 
 		services.saveMobile({

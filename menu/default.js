@@ -1,26 +1,25 @@
 console.log('menu/default')
 
-const services = global.services
-
 class Menu {
 	constructor(opts) {
+		console.log('constructor - menu/default')
+
 		this.init(opts)
 	}
 
-	async init(opts) {
-		const app = opts.app
-		const session = opts.session
-		const id = session.id
+	async init({ id, app }) {
+		const session = app.sessions[id]
+		console.log(id, session)
 
 		if (session && session.ping) {
-			console.log(services.getDT(), id, 'user at session, state')
+			console.log(app.services.getDT(), id, 'user at session, state')
 			session.ping = new Date()
 			app.runState(session)
 		} else {
-			console.log(services.getDT(), id, 'no session, search at base')
+			console.log(app.services.getDT(), id, 'no session, search at base')
 			session.ping = new Date()
 
-			const userSettings = await services.getSettings(id)[0]
+			const userSettings = await app.services.getSettings(id)[0]
 
 			if (userSettings) {
 				// find a user
@@ -32,7 +31,7 @@ class Menu {
 				session.lang = app.defaultLang
 				session.state = app.defaultState
 
-				await services.saveUser(id)
+				await app.services.saveUser(id)
 			}
 		}
 

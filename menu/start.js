@@ -4,6 +4,8 @@ const texts = global.texts
 
 class Menu {
 	constructor(opts) {
+		console.log('constructor - menu/start')
+
 		this.app = opts.app
 		this.session = opts.session
 

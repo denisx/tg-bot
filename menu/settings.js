@@ -2,6 +2,8 @@ console.log('menu/settings')
 
 class Menu {
 	constructor() {
+		console.log('constructor - menu/settings')
+
 		// const id = opts.id
 		// const app = opts.app
 		// const session = app.session[id]

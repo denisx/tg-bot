@@ -28,6 +28,7 @@ class Menu {
 		}
 
 		this.menu = {}
+
 		const menu = this.menu
 
 		Object.keys(tree).filter(key => !tree[key].noFile).forEach((key) => {

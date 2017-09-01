@@ -7,6 +7,8 @@ const menu = global.menu
 
 class Menu {
 	constructor(opts) {
+		console.log('constructor - menu/choose lang')
+
 		const id = opts.id
 		const app = opts.app
 		this.session = app.session[id]
@@ -51,6 +53,7 @@ class Menu {
 							type: 'sendMessage',
 							data: texts.getText(lang, 'saveLangOK', { lang: texts.getText(lang, lang) })
 						})
+
 						session.dropUserText = true
 						session.state = 'start'
 						app.runState(id)

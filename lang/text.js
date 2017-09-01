@@ -43,11 +43,13 @@ class Text {
 
 		if (abbr) {
 			let text = this.text[lang][abbr]
+
 			if (text) {
 				if (replace) {
 					Object.keys(replace).forEach((key) => {
 						// const r = new RegExp(`\\$\{${key}\}`, 'g')
 						const r = new RegExp(`\\$\{${key}}`, 'g')
+
 						text = text.replace(r, replace[key])
 					})
 				}
@@ -74,9 +76,11 @@ class Text {
 
 	getFrameText(lang, state) {
 		const t = menu.get(state)
+
 		const opts = {
 			webPreview: (typeof t.webPreview === 'boolean') ? t.webPreview : true
 		}
+
 		const res = []
 		let text = []
 
@@ -126,6 +130,7 @@ class Text {
 					(typeof el[1] !== 'string') ? JSON.stringify(el[1]) : el[1]
 				]))
 			})
+
 			obj.push(objLine)
 		})
 
@@ -149,6 +154,7 @@ class Text {
 					objLine.push(this.getText(lang, el[0]))
 				}
 			})
+
 			obj.push(objLine)
 		})
 

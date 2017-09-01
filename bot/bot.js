@@ -115,6 +115,7 @@ class App {
 			this.botInput(id)
 		})
 			.catch(err => errLog('bot.js', 'init', err))
+
 		bot.startPolling()
 	}
 
@@ -134,8 +135,6 @@ class App {
 		) {
 			return
 		}
-
-		// console.log(334, 'go')
 
 		const { ctx, msg } = this.storage[id].shift()
 
@@ -194,7 +193,7 @@ class App {
 		const stateFunc = this.menu.getMenu('default')
 
 		if (stateFunc) {
-			stateFunc({ session, app: this })
+			stateFunc({ id, app: this })
 		}
 	}
 
@@ -548,25 +547,25 @@ class App {
 			was: 0
 		}
 
-		Object.keys(this.sessions).forEach((key) => {
-			const session = this.sessions[key]
+		Object.keys(this.sessions).forEach((id) => {
+			const session = this.sessions[id]
 
 			// if (now - this.userDelay > session.ping) {
 			if (now - this.userDelay > session.ping) {
 				count.killed++
 
 				if (session.inWork) {
-					errLog('timer', 'still inWork', key)
+					errLog('timer', 'still inWork', id)
 				}
 
-				delete this.sessions[key]
+				delete this.sessions[id]
 			} else {
 				count.session++
 			}
 			// console.log(88, key, session.inWork)
 
 			if (session.inWork && now - this.workDelay > session.ping) {
-				console.log('timer', 'user', `${key} session.inWork = ${session.inWork}`)
+				console.log('timer', 'user', `${id} session.inWork = ${session.inWork}`)
 				console.log(`is ON !#!#! queue = ${session.data.length}`)
 				session.inWork = false
 				this.send(id)

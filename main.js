@@ -3,7 +3,7 @@ process.env.NODE_PATH = __dirname
 
 require('module').Module._initPaths()
 
-const getDT = (dt) => {
+function getDT(dt) {
 	const now = dt ? new Date(dt) : new Date()
 
 	return [
@@ -32,6 +32,7 @@ global.log = (file, name, a, b, c) => {
 }
 
 global.homePath = __dirname
+
 const os = require('os')
 
 const hostname = os.hostname()
@@ -46,6 +47,7 @@ const settings = {
 
 global.SYSErr = (err) => {
 	let data = {}
+
 	errLog('server.js', 'global.SYSErr', err)
 
 	switch (err.code) {
@@ -65,12 +67,12 @@ global.SYSErr = (err) => {
 			data = 'COMMON_ERROR'
 		}
 	}
+
 	return data
 }
 
 process.on('uncaughtException', (err) => {
 	errLog('process.on', 'uncaughtException', err)
-
 	// if (!app.status()) {
 	// app.reuse()
 	// }

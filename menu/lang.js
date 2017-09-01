@@ -3,6 +3,8 @@ console.log('menu/lang')
 const texts = global.texts
 
 function f(id) {
+	console.log('function - menu/lang')
+
 	const menu = self.menu[id]
 	this.menu = menu
 	console.log()

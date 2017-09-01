@@ -7,8 +7,6 @@ const servicesApp = require('../services')
 const errLog = global.errLog
 // const db = global.db
 
-// const NAME = 'bot.js'
-
 class App {
 	constructor(opts) {
 		this.opts = opts
@@ -114,15 +112,14 @@ class App {
 			const session = this.sessions[id]
 
 			session.data = session.data || []
-			this.botInput(session)
+			this.botInput(id)
 		})
 			.catch(err => errLog('bot.js', 'init', err))
 		bot.startPolling()
 	}
 
-	botInput(oldSession) {
-		const session = Object.assign({}, oldSession)
-		const id = session.id
+	async botInput(id) {
+		const session = this.sessions[id]
 
 		// console.log(333, session.inWork,
 		// 	session.data.length,
@@ -130,9 +127,11 @@ class App {
 		// 	this.storage[id].length
 		// )
 
-		if (!(!session.inWork && !session.data.length &&
-			!session.inInput && this.storage[id].length)) {
-			// console.log(334, 'stop next ctx')
+		if (session.inWork ||
+			session.data.length ||
+			session.inInput ||
+			!this.storage[id].length
+		) {
 			return
 		}
 
@@ -146,7 +145,7 @@ class App {
 		session.userData = session.userData || {}
 		session.isCallbackQuery = !!ctx.update.callback_query
 		session.inInput = true
-		session.start = new Date()
+		session.dtStart = new Date()
 		session.userInput = session.userInput || {}
 
 		const userInput = session.userInput
@@ -154,7 +153,7 @@ class App {
 		if (msg.text) {
 			userInput.commandLine = msg.text.match(/^\/([^\s]+) *(.+)*/) || []
 			userInput.command = userInput.commandLine[1] || ''
-			userInput.text = (msg.text && !session.dropUserText) ? msg.text : ''
+			userInput.text = !session.dropUserText ? msg.text : ''
 		} else {
 			userInput.commandLine = null
 			userInput.command = null
@@ -167,14 +166,14 @@ class App {
 		console.log()
 
 		if (session.isCallbackQuery) {
-			// this.send(session, {
+			// this.send(id, {
 			// 	type: 'answerCallbackQuery'
 			// })
 			session.hasAnswerCallbackQuery = false
 			session.cbData = JSON.parse(ctx.update.callback_query.data)
 		} else {
 			if (!session.inWork) {
-				this.send(session, {
+				await this.send(id, {
 					type: 'sendChatAction'
 				})
 			}
@@ -183,7 +182,7 @@ class App {
 		}
 
 		if (msg.chat.type !== 'private') {
-			return this.send(session, {
+			return this.send(id, {
 				type: 'sendMessage',
 				data: [this.texts.getText(this.defaultLang, 'groupInfo', {
 					line: this.defaultOpts.line,
@@ -202,8 +201,8 @@ class App {
 	/**
 	 * prepare and format send object
 	 */
-	send(oldSession, opts) {
-		const session = Object.assign({}, oldSession)
+	async send(id, opts) {
+		const session = this.sessions[id]
 
 		if (opts) {
 			const {
@@ -222,14 +221,16 @@ class App {
 			]
 
 			if (!noTyping.includes(type)) {
-				let chatActionText = 'typing'
+				let chatActionText
 
 				switch (type) {
 					case 'sendPhoto': {
 						chatActionText = 'upload_photo'
 						break
 					}
-					default:
+					default: {
+						chatActionText = 'typing'
+					}
 				}
 
 				session.data.push({
@@ -249,22 +250,17 @@ class App {
 			})
 		}
 
-		if (!(!session.inWork && session.data.length)) {
-			if (!session.data.length) {
+		if (session.inWork || session.data.length === 0) {
+			if (session.data.length === 0) {
 				// session.inInput = false
-				this.botInput(session)
+				this.botInput(id)
 			}
 
 			return
 		}
 
-		// console.log(112, 'go')
-
 		const item = session.data.shift()
 
-		// console.log(222, item, session.inWork, session.data.length)
-
-		// item.ctx = session.ctx
 		session.inWork = true
 
 		let replyName
@@ -286,10 +282,10 @@ class App {
 				break
 			default:
 				errLog('bot.js send', 'default case', item.type)
-				this.next(session)
+				this.next(id)
 		}
 
-		if (replyName && ['sendMessage'].indexOf(item.type) > -1) {
+		if (replyName && ['sendMessage'].includes(item.type)) {
 			const data = item.data
 			let dataToSend
 			let dataToSend2
@@ -316,16 +312,15 @@ class App {
 			// const messageId = (opts) ? opts.messageId : null
 			// console.log(334, opts)
 			// this.reply(item, replyName, item)
-			this.reply(session, item, replyName)
+			await this.reply(id, item, replyName)
 		}
 	}
 
 	/*
 	 * use telegram-framework here, send
 	 */
-	reply(oldSession, item, func) {
-		const session = Object.assign({}, oldSession)
-
+	async reply(id, item, func) {
+		const session = this.sessions[id]
 		const data = item.data
 		let text
 		let markup
@@ -341,6 +336,7 @@ class App {
 						text = data
 					} else {
 						markup = data[1]
+
 						if (typeof data[0] === 'string') {
 							text = data[0]
 						} else {
@@ -363,87 +359,95 @@ class App {
 				return errLog('bot.js - reply', 'no item.type', item.type)
 		}
 
-		if (!session.hasAnswerCallbackQuery && new Date() - session.start > this.answerCallbackQueryDelay) {
+		if (!session.hasAnswerCallbackQuery && new Date() - session.dtStart > this.answerCallbackQueryDelay) {
 			session.hasAnswerCallbackQuery = true
 
-			this.send(session, {
+			await this.send(id, {
 				type: 'answerCallbackQuery'
 			})
 		}
 
 		// send
 		switch (func) {
-			case 'answerCallbackQuery':
+			case 'answerCallbackQuery': {
 				session.hasAnswerCallbackQuery = true
 
 				if (item.callbackQueryId) {
 					// console.log(11, item, text)
-					//										   callbackQueryId, text, url, showAlert, cacheTime
-					this.bot.telegram.answerCallbackQuery(item.callbackQueryId, text, undefined, !!item.showAlert)
+					//										callbackQueryId, text, url, showAlert, cacheTime
+					const res = await this.bot
+						.telegram.answerCallbackQuery(item.callbackQueryId, text, undefined, !!item.showAlert)
 						.catch(err => errLog('bot.js reply', func, err))
-						.then(res => this.next(session, res, text, markup))
+
+					await this.next(id, res, text, markup)
 				} else {
-					// console.log(22)
-					session.ctx[func]()
+					const res = await session.ctx[func]()
 						.catch(err => errLog('bot.js reply', func, err))
-						.then(res => this.next(session, res, text, markup))
+
+					await this.next(id, res, text, markup)
 				}
-				break
 
-			case 'editMessageReplyMarkup':
-				// console.log(33, item)
-				this.bot.telegram.editMessageReplyMarkup(item.id, item.messageId, undefined, markup.reply_markup)
-					.catch(err => errLog('bot.js reply', func, err))
-					.then(res => this.next(session, res, text, markup))
 				break
+			}
 
-			case 'editMessageText':
-				this.bot.telegram.editMessageText(item.id, item.messageId, undefined, text, markup)
+			case 'editMessageReplyMarkup': {
+				const res = await this.bot
+					.telegram.editMessageReplyMarkup(item.id, item.messageId, undefined, markup.reply_markup)
 					.catch(err => errLog('bot.js reply', func, err))
-					.then(res => this.next(session, res, text, markup))
+
+				await this.next(id, res, text, markup)
 				break
+			}
 
-			default:
-				session.ctx[func](text, markup)
+			case 'editMessageText': {
+				const res = await this.bot
+					.telegram.editMessageText(item.id, item.messageId, undefined, text, markup)
 					.catch(err => errLog('bot.js reply', func, err))
-					.then(res => this.next(session, res, text, markup))
+
+				await this.next(id, res, text, markup)
+				break
+			}
+
+			default: {
+				const res = await session.ctx[func](text, markup)
+					.catch(err => errLog('bot.js reply', func, err))
+
+				await this.next(id, res, text, markup)
+			}
 		}
 	}
 
-	next(session, res, text, markup) {
-		// const session = this.sessions[id]
-		this.catchAnswer(session, res, text, markup)
+	next(id, res, text, markup) {
+		this.catchAnswer(id, res, text, markup)
 	}
 
-	catchAnswer(oldSession, res, text, markup) {
-		const session = Object.assign({}, oldSession)
+	catchAnswer(id, res, text, markup) {
 		// const session = this.sessions[id]
 
 		// console.log()
 		// console.log()
 		// console.log('catchAnswer', session.id, res, !!text, !!markup)
 		// console.log()
-
 		if (!res) {
-			errLog('catchAnswer', '!res', { id: session.id, res, text, markup })
+			errLog('catchAnswer', '!res', { id, res, text, markup })
 		}
 
+		const session = this.sessions[id]
+
 		session.inWork = false
-		this.send(session)
+		this.send(id)
 	}
 
-	static dropUserText(oldSession) {
-		const session = Object.assign({}, oldSession)
+	static dropUserText(id) {
+		const session = this.sessions[id]
 
 		// const session = this.sessions[id]
 		session.userInput = {}
 		session.dropUserText = false
-
-		return session
 	}
 
-	runState(oldSession) {
-		const session = Object.assign({}, oldSession)
+	async runState(id) {
+		const session = this.sessions[id]
 
 		// const session = this.sessions[id]
 		if (!session) {
@@ -467,7 +471,7 @@ class App {
 				session.stateOld = session.state
 				session.state = userInput.command
 				session.dropUserText = true
-				this.dropUserText(session)
+				this.dropUserText(id)
 				// console.log('state changed (1) from', session.stateOld, 'to', userInput.command)
 			}
 
@@ -482,7 +486,7 @@ class App {
 						session.stateOld = session.state
 						session.state = newState
 						session.dropUserText = true
-						this.dropUserText(session)
+						this.dropUserText(id)
 					}
 				} else {
 					onceState = textState
@@ -491,7 +495,7 @@ class App {
 		}
 
 		if (session.dropUserText) {
-			this.dropUserText(session)
+			this.dropUserText(id)
 		}
 
 		let stateFunc = this.menu.getMenu(session.state)
@@ -514,24 +518,24 @@ class App {
 				.then(() => {
 					// console.log(NAME, 456)
 					session.inInput = false
-					this.botInput(session)
+					this.botInput(id)
 				})
 				.catch(err => errLog(err))
 		} else {
 			if (onceState) {
-				this.send(session, {
+				await this.send(id, {
 					type: 'sendMessage',
 					data: this.texts.getFrameText(session.lang, onceState)
 				})
 			}
 
-			this.send(session, {
+			await this.send(id, {
 				type: 'sendMessage',
 				data: this.texts.getFrameText(session.lang, session.state)
 			})
 
 			session.inInput = false
-			this.botInput(session)
+			this.botInput(id)
 		}
 	}
 
@@ -565,7 +569,7 @@ class App {
 				console.log('timer', 'user', `${key} session.inWork = ${session.inWork}`)
 				console.log(`is ON !#!#! queue = ${session.data.length}`)
 				session.inWork = false
-				this.send(session)
+				this.send(id)
 			}
 
 			count.was++

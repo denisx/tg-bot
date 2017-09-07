@@ -85,7 +85,7 @@ global.db = require('db-mysql-async')(settings.tgBot.mysql.connection)
 const start = async function() {
 	const connection = await global.db
 		.getConnection()
-		.catch(err => errLog('connection', 'db', err))
+		.catch(err => errLog('connection', 'global.db.getConnection', err))
 
 	if (!connection) {
 		return

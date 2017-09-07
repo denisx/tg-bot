@@ -1,4 +1,5 @@
-console.log('services.js')
+const NAME = 'services.js'
+console.log(NAME)
 
 const request = require('request')
 const fs = require('fs')
@@ -30,7 +31,7 @@ class Services {
 
 	async getSettings(id) {
 		const app = this.app
-		const session = app.session[id]
+		const session = app.sessions[id]
 		const msg = session.msg
 
 		const query = `SELECT lang, banned, state FROM user
@@ -41,12 +42,12 @@ class Services {
 			.sql(query)
 			.catch(err => errLog('getSettings', query, err))
 
-		return resSettings
+		return resSettings[0] || {}
 	}
 
 	saveState(id) {
 		const app = this.app
-		const session = app.session[id]
+		const session = app.sessions[id]
 
 		const query = `UPDATE \`user\`
 			SET \`state\` = ${db.escape(session.state)},
@@ -58,7 +59,7 @@ class Services {
 
 	saveLang(id) {
 		const app = this.app
-		const session = app.session[id]
+		const session = app.sessions[id]
 
 		const query = `UPDATE \`user\`
 			SET \`lang\` = ${db.escape(session.lang)},
@@ -70,7 +71,7 @@ class Services {
 
 	async saveUser(id) {
 		const app = this.app
-		const session = app.session[id]
+		const session = app.sessions[id]
 		const msg = session.msg
 
 		const query = `INSERT IGNORE INTO \`user\`
@@ -109,11 +110,12 @@ class Services {
 
 		const userAddResult = await db
 			.sql(query)
-			.catch(err => errLog('saveUser, new user', query, err))
+			.catch(err => errLog(NAME, 'saveUser, new user', query, err))
 
 		console.log('saveUser', userAddResult)
 
 		// return await new Promise((resolve, reject) => {
+		// 	.catch
 		// .then((res) => {
 		// 	const query = `UPDATE \`user\`
 		// SET

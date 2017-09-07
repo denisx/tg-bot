@@ -74,6 +74,10 @@ class Text {
 		return ''
 	}
 
+	getFrameTextBySession(session) {
+		return this.getFrameText(session.lang, session.state)
+	}
+
 	getFrameText(lang, state) {
 		const t = menu.get(state)
 

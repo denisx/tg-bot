@@ -1,5 +1,3 @@
-console.log('menu/choose lang')
-
 const services = global.services
 const errLog = global.errLog
 const texts = global.texts

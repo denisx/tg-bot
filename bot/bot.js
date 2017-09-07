@@ -1,3 +1,4 @@
+const NAME = 'bot.js'
 const Telegraf = require('telegraf')
 const textsApp = require('../lang/text')
 const menuApp = require('../lang/menu')
@@ -44,7 +45,7 @@ class App {
 		console.log()
 	}
 
-	init() {
+	async init() {
 		this.sessions = {}
 		this.storage = {}
 		this.timer()
@@ -63,7 +64,7 @@ class App {
 			if (ctx.update) {
 				msg = ctx.update.message || ctx.update.callback_query.message || null
 			} else {
-				return errLog('bot.js', 'init', ctx)
+				return errLog(NAME, 'init', ctx)
 			}
 
 			if (!msg) {
@@ -96,7 +97,7 @@ class App {
 			}
 
 			if (!msg) {
-				return errLog('bot.js', 'init', ctx.update)
+				return errLog(NAME, 'init', ctx.update)
 			}
 
 			const id = this.services.getId({
@@ -107,14 +108,15 @@ class App {
 			this.storage[id] = this.storage[id] || []
 			this.storage[id].push({ ctx, msg })
 
-			this.sessions[id] = this.sessions[id] || { id }
+			this.sessions[id] = this.sessions[id] || { id, settings: {} }
 
 			const session = this.sessions[id]
 
 			session.data = session.data || []
+
 			this.botInput(id)
 		})
-			.catch(err => errLog('bot.js', 'init', err))
+			.catch(err => errLog(NAME, 'init', err))
 
 		bot.startPolling()
 	}
@@ -175,25 +177,32 @@ class App {
 				await this.send(id, {
 					type: 'sendChatAction'
 				})
+					.catch(err => errLog(NAME, 'this.send', err))
 			}
 
 			session.cbData = null
 		}
 
 		if (msg.chat.type !== 'private') {
-			return this.send(id, {
+			const sendRes = await this.send(id, {
 				type: 'sendMessage',
 				data: [this.texts.getText(this.defaultLang, 'groupInfo', {
 					line: this.defaultOpts.line,
 					botName: this.opts.bot.username
 				})]
 			})
+				.catch(err => errLog(NAME, 'this.send', err))
+
+			return sendRes
 		}
 
 		const stateFunc = this.menu.getMenu('default')
 
 		if (stateFunc) {
-			stateFunc({ id, app: this })
+			console.log(4857, 'run state func', 'default')
+			await stateFunc({ id, app: this })
+				.catch(err => errLog(NAME, 'stateFunc', err))
+			console.log(4857, 2, 'botInput, stateFunc default, end running')
 		}
 	}
 
@@ -312,6 +321,7 @@ class App {
 			// console.log(334, opts)
 			// this.reply(item, replyName, item)
 			await this.reply(id, item, replyName)
+				.catch(err => errLog(NAME, 'this.reply', err))
 		}
 	}
 
@@ -364,6 +374,7 @@ class App {
 			await this.send(id, {
 				type: 'answerCallbackQuery'
 			})
+				.catch(err => errLog(NAME, 'this.send', err))
 		}
 
 		// send
@@ -376,14 +387,16 @@ class App {
 					//										callbackQueryId, text, url, showAlert, cacheTime
 					const res = await this.bot
 						.telegram.answerCallbackQuery(item.callbackQueryId, text, undefined, !!item.showAlert)
-						.catch(err => errLog('bot.js reply', func, err))
+						.catch(err => errLog(NAME, 'this.bot.telegram.answerCallbackQuery', err))
 
 					await this.next(id, res, text, markup)
+						.catch(err => errLog(NAME, 'this.next', err))
 				} else {
 					const res = await session.ctx[func]()
-						.catch(err => errLog('bot.js reply', func, err))
+						.catch(err => errLog(NAME, 'session.ctx[func]()', err))
 
 					await this.next(id, res, text, markup)
+						.catch(err => errLog(NAME, 'this.next', err))
 				}
 
 				break
@@ -392,26 +405,29 @@ class App {
 			case 'editMessageReplyMarkup': {
 				const res = await this.bot
 					.telegram.editMessageReplyMarkup(item.id, item.messageId, undefined, markup.reply_markup)
-					.catch(err => errLog('bot.js reply', func, err))
+					.catch(err => errLog(NAME, 'this.bot.telegram.editMessageReplyMarkup', err))
 
 				await this.next(id, res, text, markup)
+					.catch(err => errLog(NAME, 'this.next', err))
 				break
 			}
 
 			case 'editMessageText': {
 				const res = await this.bot
 					.telegram.editMessageText(item.id, item.messageId, undefined, text, markup)
-					.catch(err => errLog('bot.js reply', func, err))
+					.catch(err => errLog(NAME, 'this.bot.telegram.editMessageText', err))
 
 				await this.next(id, res, text, markup)
+					.catch(err => errLog(NAME, 'this.next', err))
 				break
 			}
 
 			default: {
 				const res = await session.ctx[func](text, markup)
-					.catch(err => errLog('bot.js reply', func, err))
+					.catch(err => errLog(NAME, 'session.ctx[func]', err))
 
 				await this.next(id, res, text, markup)
+					.catch(err => errLog(NAME, 'this.next', err))
 			}
 		}
 	}
@@ -448,15 +464,19 @@ class App {
 	async runState(id) {
 		const session = this.sessions[id]
 
-		// const session = this.sessions[id]
 		if (!session) {
-			return errLog('bot.js', 'no session')
+			return errLog(NAME, 'no session')
 		}
+
+		console.log('starting runState')
+		// if (session.state != 'default') {
+			return Promise.resolve()
+		// }
 
 		const userInput = session.userInput
 
 		if (!session.state) {
-			errLog('bot.js', 'no state, get `start` by default', session.state)
+			errLog(NAME, 'no state, get `start` by default', session.state)
 			session.stateOld = this.defaultState
 			session.state = this.defaultState
 		}
@@ -508,34 +528,37 @@ class App {
 
 		if (session.stateOld !== session.state) {
 			this.services.saveState(session.id)
-				.catch(err => errLog('bot.js', 'save new state', err))
+				.catch(err => errLog(NAME, 'save new state', err))
 		}
 
 		if (stateFunc && !onceState) {
-			// console.log(NAME, 345)
-			stateFunc({ session, app: this })
-				.then(() => {
-					// console.log(NAME, 456)
-					session.inInput = false
-					this.botInput(id)
-				})
-				.catch(err => errLog(err))
+			// console.log(345, session.state)
+			await stateFunc({ id, app: this })
+				.catch(err => errLog(NAME, 'stateFunc', err))
+
+			session.inInput = false
+			this.botInput(id)
 		} else {
 			if (onceState) {
 				await this.send(id, {
 					type: 'sendMessage',
 					data: this.texts.getFrameText(session.lang, onceState)
 				})
+					.catch(err => errLog(NAME, 'this.send', err))
 			}
 
 			await this.send(id, {
 				type: 'sendMessage',
-				data: this.texts.getFrameText(session.lang, session.state)
+				data: this.texts.getFrameTextBySession(session)
 			})
+				.catch(err => errLog(NAME, 'this.send', err))
 
 			session.inInput = false
 			this.botInput(id)
 		}
+
+		console.log('runState end')
+		return Promise.resolve()
 	}
 
 	timer() {

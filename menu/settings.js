@@ -1,5 +1,3 @@
-console.log('menu/settings')
-
 class Menu {
 	constructor() {
 		console.log('constructor - menu/settings')

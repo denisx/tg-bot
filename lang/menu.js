@@ -45,6 +45,7 @@ class Menu {
 			return errLog('getMenu', 'nothing state =', state)
 		}
 
+		console.log(4885, state)
 		return this.menu[state]
 	}
 

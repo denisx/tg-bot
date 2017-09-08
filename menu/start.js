@@ -1,30 +1,32 @@
+const NAME = 'start.js'
+
+const errLog = global.errLog
+
 class Menu {
 	constructor(opts) {
-		console.log('constructor - menu/start', opts)
+		console.log(NAME, 'constructor - menu/start', Object.keys(opts))
 
 		this.init(opts)
 	}
 
 	async init({ id, app }) {
-		console.log('start.js, before send message')
-		// const session = app.sessions[id]
-		// const textFrame = app.texts.getFrameTextBySession(session)
-		// const tf = [...textFrame]
+		console.log(NAME, 'start init()')
+		const session = app.sessions[id]
+		const textFrame = app.texts.getFrameTextBySession(session)
+		const tf = [...textFrame]
 
-		// console.log(tf)
+		const sendRes = await app.send(id, {
+			type: 'sendMessage',
+			data: tf
+		})
+			.catch(err => errLog(NAME, 'init(), app.send', err))
 
-
-		// const sendRes = await app.send(id, {
-		// 	type: 'sendMessage',
-		// 	data: tf
-		// }) .catch
-
-		console.log('start.js, after send message')
-		// return sendRes
-		return Promise.resolve()
+		console.log(NAME, 'end init()')
+		return sendRes
+		// return Promise.resolve()
 	}
 }
 
-module.exports = (opts) => {
+module.exports = async(opts) => {
 	return new Menu(opts)
 }

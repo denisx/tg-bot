@@ -1,14 +1,17 @@
 // 1. get code: self.fixedCharCodeAt(msg.text, i)
 // 2. use unicode helper: http://r12a.github.io/apps/conversion/
 
+const NAME = 'text.js'
+
 const { Extra, Markup } = require('telegraf/lib')
 const emoji = require('node-emoji').emoji
 
 const errLog = global.errLog
-const menu = global.menu
 
-class Text {
+class TextApp {
 	constructor(opts) {
+		console.log(NAME, 'TextApp() constructor', Object.keys(opts))
+
 		this.opts = opts
 
 		this.abbr = {
@@ -24,6 +27,10 @@ class Text {
 		})
 		// this.line = '\r\n'
 		this.emoji = emoji
+	}
+
+	setOpts({ menu }) {
+		this.menu = menu
 	}
 
 	getData(lang, abbr) {
@@ -79,7 +86,11 @@ class Text {
 	}
 
 	getFrameText(lang, state) {
-		const t = menu.get(state)
+		if (!lang || !state) {
+			return errLog(NAME, 'getFrameText, bad opts', `${lang} ${state}`)
+		}
+
+		const t = this.menu.get(state)
 
 		const opts = {
 			webPreview: (typeof t.webPreview === 'boolean') ? t.webPreview : true
@@ -180,10 +191,10 @@ class Text {
 
 module.exports = (opts) => {
 	if (!opts) {
-		return errLog('menu', 'exports', 'no opts')
+		return errLog('text.js', 'exports', 'no opts')
 	}
 
-	return new Text(opts)
+	return new TextApp(opts)
 }
 
 // emoji

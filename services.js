@@ -1,5 +1,4 @@
 const NAME = 'services.js'
-console.log(NAME)
 
 const request = require('request')
 const fs = require('fs')
@@ -9,6 +8,7 @@ const db = global.db
 
 class Services {
 	constructor(opts) {
+		console.log(NAME, 'Services() constructor', Object.keys(opts))
 		this.app = opts.app
 	}
 
@@ -112,7 +112,7 @@ class Services {
 			.sql(query)
 			.catch(err => errLog(NAME, 'saveUser, new user', query, err))
 
-		console.log('saveUser', userAddResult)
+		console.log(NAME, 'saveUser', userAddResult)
 
 		// return await new Promise((resolve, reject) => {
 		// 	.catch
@@ -316,7 +316,7 @@ class Services {
 	}
 
 	downloadFile(opts) {
-		console.log(22, opts)
+		console.log(NAME, 22, opts)
 		return new Promise((resolve, reject) => {
 			request.head(opts.uri, (err) => {
 				if (err) {

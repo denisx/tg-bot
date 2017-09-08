@@ -16,8 +16,6 @@ function getDT(dt) {
 	].join('')
 }
 
-global.DEV = false
-
 global.errLog = (name, desc, err, cb) => {
 	console.error(getDT(), name, desc, err)
 	if (cb && typeof cb === 'function') {
@@ -44,6 +42,8 @@ console.log(getDT(), 'started server at', hostname)
 const settings = {
 	tgBot: require('./settings')[hostname]
 }
+
+global.DEV = settings.tgBot.dev || false
 
 global.SYSErr = (err) => {
 	let data = {}

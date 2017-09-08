@@ -10,6 +10,8 @@ const errLog = global.errLog
 
 class App {
 	constructor(opts) {
+		console.log(NAME, 'App() constructor', Object.keys(opts))
+
 		this.opts = opts
 		this.timerDelay = /* 1 min */ 1.2 * 60 * 1000
 		this.userDelay = /* 20 min */ 20 * 60 * 1000
@@ -17,14 +19,11 @@ class App {
 		this.answerCallbackQueryDelay = 5 * 1000
 		this.services = servicesApp({ settings: opts, app: this })
 
-		// this.botKey = this.services.getBotKey(opts.bot.username)
-		this.botKey = opts.botKey || 0
 		this.defaultLang = 'ru'
 		this.defaultState = 'start'
 		this.defaultTmp = 'tmp'
 
 		this.defaultOpts = {
-			botKey: this.botKey,
 			botName: opts.bot.username,
 			line: '\r\n'
 		}
@@ -41,7 +40,10 @@ class App {
 		this.texts = textsApp(this.defaultOpts)
 		this.menu = menuApp(this.defaultOpts)
 
-		console.log(this.services.getDT(), 'started bot', opts.bot.username)
+		this.texts.setOpts({ menu: this.menu })
+		this.menu.setOpts({ texts: this.texts })
+
+		console.log(NAME, this.services.getDT(), 'started bot', opts.bot.username)
 		console.log()
 	}
 
@@ -78,15 +80,15 @@ class App {
 			}
 
 			console.log()
-			console.log('=== === ===')
-			console.log(this.services.getDT(), ctx.update)
+			console.log(NAME, '=== === ===')
+			console.log(NAME, this.services.getDT(), ctx.update)
 
 			if (ctx.update.callback_query) {
-				console.log('=== callback_query')
-				console.log(this.services.getDT(), ctx.update.callback_query.message)
+				console.log(NAME, '=== callback_query')
+				console.log(NAME, this.services.getDT(), ctx.update.callback_query.message)
 			}
 
-			console.log('===')
+			console.log(NAME, '===')
 
 			if (this.opts.botan.token) {
 				this.services.botanio({
@@ -163,13 +165,15 @@ class App {
 
 		session.dropUserText = false
 
-		console.log('current session', session.userInput)
+		console.log(NAME, 'current session', session.userInput)
 		console.log()
 
 		if (session.isCallbackQuery) {
 			// this.send(id, {
 			// 	type: 'answerCallbackQuery'
 			// })
+			// 	.catch(err => errLog(NAME, 'this.send', err))
+
 			session.hasAnswerCallbackQuery = false
 			session.cbData = JSON.parse(ctx.update.callback_query.data)
 		} else {
@@ -186,10 +190,12 @@ class App {
 		if (msg.chat.type !== 'private') {
 			const sendRes = await this.send(id, {
 				type: 'sendMessage',
-				data: [this.texts.getText(this.defaultLang, 'groupInfo', {
-					line: this.defaultOpts.line,
-					botName: this.opts.bot.username
-				})]
+				data: [this.texts.getText(this.defaultLang, 'groupInfo',
+					{
+						line: this.defaultOpts.line,
+						botName: this.opts.bot.username
+					}
+				)]
 			})
 				.catch(err => errLog(NAME, 'this.send', err))
 
@@ -199,10 +205,10 @@ class App {
 		const stateFunc = this.menu.getMenu('default')
 
 		if (stateFunc) {
-			console.log(4857, 'run state func', 'default')
+			console.log(NAME, 4857, 'run state func', 'default')
 			await stateFunc({ id, app: this })
 				.catch(err => errLog(NAME, 'stateFunc', err))
-			console.log(4857, 2, 'botInput, stateFunc default, end running')
+			console.log(NAME, 4857, 2, 'botInput, stateFunc default, end running')
 		}
 	}
 
@@ -426,7 +432,7 @@ class App {
 				const res = await session.ctx[func](text, markup)
 					.catch(err => errLog(NAME, 'session.ctx[func]', err))
 
-				await this.next(id, res, text, markup)
+				this.next(id, res, text, markup)
 					.catch(err => errLog(NAME, 'this.next', err))
 			}
 		}
@@ -451,9 +457,10 @@ class App {
 
 		session.inWork = false
 		this.send(id)
+			.catch(err => errLog(NAME, 'catchAnswer(), this.send', err))
 	}
 
-	static dropUserText(id) {
+	dropUserText(id) {
 		const session = this.sessions[id]
 
 		// const session = this.sessions[id]
@@ -468,9 +475,9 @@ class App {
 			return errLog(NAME, 'no session')
 		}
 
-		console.log('starting runState')
+		console.log(NAME, 'starting runState', session.state)
 		// if (session.state != 'default') {
-			return Promise.resolve()
+		// 	return Promise.resolve()
 		// }
 
 		const userInput = session.userInput
@@ -497,8 +504,9 @@ class App {
 			if (session.lang) {
 				// check keyboard callback
 				let textState
+
 				[textState, newState] = this.menu.checkKeyboardAccepted(session.lang, session.state, userInput.text)
-				textState += ''
+				textState = textState || null
 
 				if (newState) {
 					if (newState !== session.state) {
@@ -532,14 +540,16 @@ class App {
 		}
 
 		if (stateFunc && !onceState) {
-			// console.log(345, session.state)
+			console.log(NAME, 345, session.state)
 			await stateFunc({ id, app: this })
 				.catch(err => errLog(NAME, 'stateFunc', err))
 
 			session.inInput = false
 			this.botInput(id)
 		} else {
+			console.log(NAME, 346, onceState)
 			if (onceState) {
+				console.log(NAME, 347, onceState)
 				await this.send(id, {
 					type: 'sendMessage',
 					data: this.texts.getFrameText(session.lang, onceState)
@@ -557,7 +567,7 @@ class App {
 			this.botInput(id)
 		}
 
-		console.log('runState end')
+		console.log(NAME, 'runState end')
 		return Promise.resolve()
 	}
 
@@ -588,17 +598,18 @@ class App {
 			// console.log(88, key, session.inWork)
 
 			if (session.inWork && now - this.workDelay > session.ping) {
-				console.log('timer', 'user', `${id} session.inWork = ${session.inWork}`)
-				console.log(`is ON !#!#! queue = ${session.data.length}`)
+				console.log(NAME, 'timer', 'user', `${id} session.inWork = ${session.inWork}`)
+				console.log(NAME, `is ON !#!#! queue = ${session.data.length}`)
 				session.inWork = false
 				this.send(id)
+					.catch(err => errLog(NAME, 'this.send', err))
 			}
 
 			count.was++
 		})
 
 		if (count.was > 0) {
-			console.log(this.services.getDT(), 'users in memory', count)
+			console.log(NAME, this.services.getDT(), 'users in memory', count)
 		}
 
 		setTimeout(() => this.timer(), this.timerDelay)

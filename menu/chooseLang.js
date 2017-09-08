@@ -1,3 +1,5 @@
+const NAME = 'chooseLang.js'
+
 const services = global.services
 const errLog = global.errLog
 const texts = global.texts
@@ -5,7 +7,7 @@ const menu = global.menu
 
 class Menu {
 	constructor(opts) {
-		console.log('constructor - menu/choose lang')
+		console.log(NAME, 'constructor - menu/choose lang', Object.keys(opts))
 
 		const id = opts.id
 		const app = opts.app
@@ -29,7 +31,7 @@ class Menu {
 			services.saveLang(id, app)
 				.catch(err => errLog('chooseLang.js, save default lang', lang, err))
 				.then(() => {
-					console.log('save default', lang)
+					console.log(NAME, 'save default', lang)
 				})
 		}
 
@@ -41,11 +43,11 @@ class Menu {
 				session.lang = cbq.data
 				lang = session.lang
 				// save lang
-				console.log(122)
+				console.log(NAME, 122)
 
 				services.saveLang(id, app)
 					.then(() => {
-						console.log(123, 'send feedback')
+						console.log(NAME, 123, 'send feedback')
 						app.send(id, {
 							ctx,
 							type: 'sendMessage',

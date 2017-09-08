@@ -1,6 +1,8 @@
+const NAME = 'settings.js'
+
 class Menu {
 	constructor() {
-		console.log('constructor - menu/settings')
+		console.log(NAME, 'constructor - menu/settings')
 
 		// const id = opts.id
 		// const app = opts.app
@@ -10,7 +12,7 @@ class Menu {
 		// const state = session.set.state
 		// const ctx = session.ctx
 
-		console.log('settings file')
+		console.log(NAME, 'settings file')
 
 		// app.send(id, {
 		// 	ctx,

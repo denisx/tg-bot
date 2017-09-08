@@ -1,16 +1,25 @@
+const NAME = 'menu.js'
+
 const tree = require('./tree')
 
-const texts = global.texts
 const errLog = global.errLog
 
-class Menu {
+class LangMenu {
 	constructor(opts) {
+		console.log(NAME, 'LangMenu() constructor', Object.keys(opts))
+
 		this.opts = opts
 		this.commands = ['start']
+		this.texts = global.texts
+
 		this.preLoad()
 	}
 
-	static get(name) {
+	setOpts({ texts }) {
+		this.texts = texts
+	}
+
+	get(name) {
 		return tree[name]
 	}
 
@@ -45,7 +54,7 @@ class Menu {
 			return errLog('getMenu', 'nothing state =', state)
 		}
 
-		console.log(4885, state)
+		console.log(NAME, 'end getMenu()', state)
 		return this.menu[state]
 	}
 
@@ -80,10 +89,10 @@ class Menu {
 			line.forEach((el) => {
 				if (!accepted) {
 					if (typeof el === 'string') {
-						if (text === texts.getText(lang, el)) {
+						if (text === this.texts.getText(lang, el)) {
 							accepted = [el]
 						}
-					} else if (text === texts.getText(lang, el[0])) {
+					} else if (text === this.texts.getText(lang, el[0])) {
 						accepted = el
 					}
 				}
@@ -96,8 +105,8 @@ class Menu {
 
 module.exports = (opts) => {
 	if (!opts) {
-		return errLog('menu', 'exports', 'no opts')
+		return errLog(NAME, 'exports', 'no opts')
 	}
 
-	return new Menu(opts)
+	return new LangMenu(opts)
 }

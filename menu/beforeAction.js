@@ -1,4 +1,6 @@
-console.log('menu/before action')
+const NAME = 'beforeAction.js'
+
+console.log(NAME, 'menu/before action')
 
 const services = global.services
 

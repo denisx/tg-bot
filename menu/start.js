@@ -4,7 +4,7 @@ const errLog = global.errLog
 
 class Menu {
 	constructor(opts) {
-		console.log(NAME, 'constructor - menu/start', Object.keys(opts))
+		console.log(NAME, 'menu() constructor', Object.keys(opts))
 
 		this.init(opts)
 	}
@@ -15,6 +15,7 @@ class Menu {
 		const textFrame = app.texts.getFrameTextBySession(session)
 		const tf = [...textFrame]
 
+		console.log(NAME, 'init(), try app.send()')
 		const sendRes = await app.send(id, {
 			type: 'sendMessage',
 			data: tf

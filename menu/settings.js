@@ -2,7 +2,7 @@ const NAME = 'settings.js'
 
 class Menu {
 	constructor() {
-		console.log(NAME, 'constructor - menu/settings')
+		console.log(NAME, 'constructor - menu/settings', Object.keys(opts))
 
 		// const id = opts.id
 		// const app = opts.app

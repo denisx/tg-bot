@@ -43,9 +43,10 @@ class App {
 		this.texts.setOpts({ menu: this.menu })
 		this.menu.setOpts({ texts: this.texts })
 
-		console.log(NAME, this.services.getDT(), 'started bot', opts.bot.username)
+		console.log(NAME, 'constructor()', this.services.getDT(), opts.bot.username)
 		console.log()
 	}
+	// end constructor
 
 	async init() {
 		this.sessions = {}
@@ -81,11 +82,11 @@ class App {
 
 			console.log()
 			console.log(NAME, '=== === ===')
-			console.log(NAME, this.services.getDT(), ctx.update)
+			console.log(NAME, 'init()', this.services.getDT(), ctx.update)
 
 			if (ctx.update.callback_query) {
 				console.log(NAME, '=== callback_query')
-				console.log(NAME, this.services.getDT(), ctx.update.callback_query.message)
+				console.log(NAME, 'init()', this.services.getDT(), ctx.update.callback_query.message)
 			}
 
 			console.log(NAME, '===')
@@ -110,20 +111,28 @@ class App {
 			this.storage[id] = this.storage[id] || []
 			this.storage[id].push({ ctx, msg })
 
-			this.sessions[id] = this.sessions[id] || { id, settings: {} }
+			this.sessions[id] = this.sessions[id] ||
+				{
+					id,
+					settings: {},
+					inWork: false
+				}
 
 			const session = this.sessions[id]
 
 			session.data = session.data || []
 
 			this.botInput(id)
+				.catch(err => errLog(NAME, 'this.botInput()', err))
 		})
 			.catch(err => errLog(NAME, 'init', err))
 
 		bot.startPolling()
 	}
+	// end init
 
 	async botInput(id) {
+		console.log(NAME, 'start botInput()')
 		const session = this.sessions[id]
 
 		// console.log(333, session.inWork,
@@ -165,7 +174,7 @@ class App {
 
 		session.dropUserText = false
 
-		console.log(NAME, 'current session', session.userInput)
+		console.log(NAME, 'botInput()', 'current session', session.userInput)
 		console.log()
 
 		if (session.isCallbackQuery) {
@@ -181,7 +190,7 @@ class App {
 				await this.send(id, {
 					type: 'sendChatAction'
 				})
-					.catch(err => errLog(NAME, 'this.send', err))
+					.catch(err => errLog(NAME, 'this.send()', err))
 			}
 
 			session.cbData = null
@@ -205,17 +214,20 @@ class App {
 		const stateFunc = this.menu.getMenu('default')
 
 		if (stateFunc) {
-			console.log(NAME, 4857, 'run state func', 'default')
+			console.log(NAME, 'botInput()', 'run state func', 'default')
 			await stateFunc({ id, app: this })
 				.catch(err => errLog(NAME, 'stateFunc', err))
-			console.log(NAME, 4857, 2, 'botInput, stateFunc default, end running')
+			console.log(NAME, 'botInput()', 'end state func', 'default')
 		}
 	}
+	// end botInput
 
 	/**
 	 * prepare and format send object
 	 */
 	async send(id, opts) {
+		console.log(NAME, 'start send()')
+
 		const session = this.sessions[id]
 
 		if (opts) {
@@ -242,6 +254,7 @@ class App {
 						chatActionText = 'upload_photo'
 						break
 					}
+
 					default: {
 						chatActionText = 'typing'
 					}
@@ -264,13 +277,16 @@ class App {
 			})
 		}
 
+		console.log(NAME, 'send(), check - inWork, data', session.inWork, session.data.length)
+
 		if (session.inWork || session.data.length === 0) {
 			if (session.data.length === 0) {
 				// session.inInput = false
 				this.botInput(id)
 			}
 
-			return
+			console.log(NAME, 'send() return 3948', session.inWork, session.data.length)
+			return Promise.resolve()
 		}
 
 		const item = session.data.shift()
@@ -279,21 +295,26 @@ class App {
 
 		let replyName
 
+		console.log(NAME, 'send(), switch item.type', item.type)
 		switch (item.type) {
 			case 'sendMessage':
 				replyName = 'replyWithHTML'
 				break
+
 			case 'sendChatAction':
 				replyName = 'replyWithChatAction'
 				break
+
 			case 'sendPhoto':
 				replyName = 'replyWithPhoto'
 				break
+
 			case 'editMessageReplyMarkup':
 			case 'editMessageText':
 			case 'answerCallbackQuery':
 				replyName = item.type
 				break
+
 			default:
 				errLog('bot.js send', 'default case', item.type)
 				this.next(id)
@@ -322,19 +343,22 @@ class App {
 			} else if (typeof data === 'object') {
 				item.data = [data[0], data[1]]
 			}
-
-			// const messageId = (opts) ? opts.messageId : null
-			// console.log(334, opts)
-			// this.reply(item, replyName, item)
-			await this.reply(id, item, replyName)
-				.catch(err => errLog(NAME, 'this.reply', err))
 		}
+
+		const replyRes = await this.reply(id, item, replyName)
+			.catch(err => errLog(NAME, 'this.reply', err))
+
+		console.log(NAME, 'end send()')
+		return replyRes
 	}
+	// end send
 
 	/*
 	 * use telegram-framework here, send
 	 */
 	async reply(id, item, func) {
+		console.log(NAME, 'start reply()')
+
 		const session = this.sessions[id]
 		const data = item.data
 		let text
@@ -374,6 +398,8 @@ class App {
 				return errLog('bot.js - reply', 'no item.type', item.type)
 		}
 
+		console.log(NAME, 'reply()', func)
+
 		if (!session.hasAnswerCallbackQuery && new Date() - session.dtStart > this.answerCallbackQueryDelay) {
 			session.hasAnswerCallbackQuery = true
 
@@ -395,14 +421,12 @@ class App {
 						.telegram.answerCallbackQuery(item.callbackQueryId, text, undefined, !!item.showAlert)
 						.catch(err => errLog(NAME, 'this.bot.telegram.answerCallbackQuery', err))
 
-					await this.next(id, res, text, markup)
-						.catch(err => errLog(NAME, 'this.next', err))
+					this.next(id, res, text, markup)
 				} else {
 					const res = await session.ctx[func]()
 						.catch(err => errLog(NAME, 'session.ctx[func]()', err))
 
-					await this.next(id, res, text, markup)
-						.catch(err => errLog(NAME, 'this.next', err))
+					this.next(id, res, text, markup)
 				}
 
 				break
@@ -413,8 +437,7 @@ class App {
 					.telegram.editMessageReplyMarkup(item.id, item.messageId, undefined, markup.reply_markup)
 					.catch(err => errLog(NAME, 'this.bot.telegram.editMessageReplyMarkup', err))
 
-				await this.next(id, res, text, markup)
-					.catch(err => errLog(NAME, 'this.next', err))
+				this.next(id, res, text, markup)
 				break
 			}
 
@@ -423,8 +446,8 @@ class App {
 					.telegram.editMessageText(item.id, item.messageId, undefined, text, markup)
 					.catch(err => errLog(NAME, 'this.bot.telegram.editMessageText', err))
 
-				await this.next(id, res, text, markup)
-					.catch(err => errLog(NAME, 'this.next', err))
+				this.next(id, res, text, markup)
+
 				break
 			}
 
@@ -433,14 +456,19 @@ class App {
 					.catch(err => errLog(NAME, 'session.ctx[func]', err))
 
 				this.next(id, res, text, markup)
-					.catch(err => errLog(NAME, 'this.next', err))
 			}
 		}
+
+		console.log(NAME, 'end reply()')
+		Promise.resolve()
 	}
+	// end reply
 
 	next(id, res, text, markup) {
+		console.log(NAME, 'start next()')
 		this.catchAnswer(id, res, text, markup)
 	}
+	// end next
 
 	catchAnswer(id, res, text, markup) {
 		// const session = this.sessions[id]
@@ -459,6 +487,7 @@ class App {
 		this.send(id)
 			.catch(err => errLog(NAME, 'catchAnswer(), this.send', err))
 	}
+	// end catchAnswer
 
 	dropUserText(id) {
 		const session = this.sessions[id]
@@ -467,15 +496,16 @@ class App {
 		session.userInput = {}
 		session.dropUserText = false
 	}
+	// end dropUserText
 
 	async runState(id) {
 		const session = this.sessions[id]
+		console.log(NAME, 'start runState()', session.state)
 
 		if (!session) {
 			return errLog(NAME, 'no session')
 		}
 
-		console.log(NAME, 'starting runState', session.state)
 		// if (session.state != 'default') {
 		// 	return Promise.resolve()
 		// }
@@ -540,16 +570,16 @@ class App {
 		}
 
 		if (stateFunc && !onceState) {
-			console.log(NAME, 345, session.state)
+			console.log(NAME, 'runState', 345, session.state)
 			await stateFunc({ id, app: this })
 				.catch(err => errLog(NAME, 'stateFunc', err))
 
 			session.inInput = false
 			this.botInput(id)
 		} else {
-			console.log(NAME, 346, onceState)
+			console.log(NAME, 'runState', 346, onceState)
 			if (onceState) {
-				console.log(NAME, 347, onceState)
+				console.log(NAME, 'runState', 347, onceState)
 				await this.send(id, {
 					type: 'sendMessage',
 					data: this.texts.getFrameText(session.lang, onceState)
@@ -570,6 +600,7 @@ class App {
 		console.log(NAME, 'runState end')
 		return Promise.resolve()
 	}
+	// end runState
 
 	timer() {
 		// console.log('timer start')
@@ -615,6 +646,7 @@ class App {
 		setTimeout(() => this.timer(), this.timerDelay)
 		// console.log('timer end')
 	}
+	// end timer
 }
 
 module.exports = (opts) => {

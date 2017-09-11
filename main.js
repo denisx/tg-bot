@@ -16,11 +16,11 @@ function getDT(dt) {
 	].join('')
 }
 
-global.errLog = (name, desc, err, cb) => {
-	console.error(getDT(), name, desc, err)
-	if (cb && typeof cb === 'function') {
-		cb(err)
-	}
+global.errLog = (name, desc, err, param) => {
+	console.error(getDT(), name, desc, err, param)
+	// if (cb && typeof cb === 'function') {
+	// 	cb(err)
+	// }
 }
 
 const errLog = global.errLog

@@ -1,10 +1,10 @@
 const NAME = 'default.js'
-
+const DEV = global.DEV || false
 const errLog = global.errLog
 
 class Menu {
 	constructor(opts) {
-		console.log(NAME, 'Menu() constructor', Object.keys(opts))
+		DEV && console.log(NAME, 'Menu() constructor', Object.keys(opts))
 
 		this.init(opts)
 	}
@@ -15,10 +15,10 @@ class Menu {
 		const services = app.services
 
 		if (session && session.ping) {
-			console.log(NAME, services.getDT(), id, 'user at session, state')
+			DEV && console.log(NAME, services.getDT(), id, 'user at session, state')
 			session.ping = new Date()
 		} else {
-			console.log(NAME, services.getDT(), id, 'no session, search at base')
+			DEV && console.log(NAME, services.getDT(), id, 'no session, search at base')
 			session.ping = new Date()
 
 			const userSettings = await services.getSettings(id)
@@ -26,13 +26,13 @@ class Menu {
 
 			if (userSettings) {
 				// find a user
-				console.log(NAME, 'find a user', 11, userSettings)
+				DEV && console.log(NAME, 'find a user', 11, userSettings)
 				session.settings = userSettings
 				session.lang = session.settings.lang
 				session.state = session.settings.state
 			} else {
 				// new user
-				console.log(NAME, 'new user', 22)
+				DEV && console.log(NAME, 'new user', 22)
 				session.lang = app.defaultLang
 				session.state = app.defaultState
 
@@ -41,12 +41,12 @@ class Menu {
 			}
 		}
 
-		console.log(NAME, id, 'init(), app.runState', session.id)
+		DEV && console.log(NAME, id, 'init(), app.runState', session.id)
 
 		const res = await app.runState(id, session)
 			.catch(err => errLog(NAME, 'app.runState', err))
 
-		console.log(NAME, 'end init()')
+		DEV && console.log(NAME, 'end init()')
 
 		return res
 	}

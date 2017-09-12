@@ -1,14 +1,14 @@
-const NAME = 'services.js'
-
 const request = require('request')
 const fs = require('fs')
 
+const NAME = 'services.js'
+const DEV = global.DEV || false
 const errLog = global.errLog
 const db = global.db
 
 class Services {
 	constructor(opts) {
-		console.log(NAME, 'Services() constructor', Object.keys(opts))
+		DEV && console.log(NAME, 'Services() constructor', Object.keys(opts))
 		this.app = opts.app
 	}
 
@@ -42,7 +42,7 @@ class Services {
 			.sql(query)
 			.catch(err => errLog('getSettings', query, err))
 
-		return resSettings[0] || {}
+		return resSettings[0]
 	}
 
 	saveState(id) {
@@ -112,7 +112,7 @@ class Services {
 			.sql(query)
 			.catch(err => errLog(NAME, 'saveUser, new user', query, err))
 
-		console.log(NAME, 'saveUser', userAddResult)
+		DEV && console.log(NAME, 'saveUser', userAddResult)
 
 		// return await new Promise((resolve, reject) => {
 		// 	.catch
@@ -316,14 +316,14 @@ class Services {
 	}
 
 	downloadFile(opts) {
-		console.log(NAME, 22, opts)
+		DEV && console.log(NAME, 22, opts)
 		return new Promise((resolve, reject) => {
 			request.head(opts.uri, (err) => {
 				if (err) {
 					return errLog(NAME, 'downloadFile', err, resolve)
 				}
-				// console.log('content-type:', res.headers['content-type'])
-				// console.log('content-length:', res.headers['content-length'])
+				// DEV && console.log('content-type:', res.headers['content-type'])
+				// DEV && console.log('content-length:', res.headers['content-length'])
 				request(opts.uri).pipe(fs.createWriteStream(opts.filename))
 					.on('error', pipeErr => errLog(NAME, 'downloadFile', pipeErr, reject))
 					.on('close', () => resolve(opts.filename))

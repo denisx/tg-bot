@@ -1,28 +1,28 @@
 const NAME = 'start.js'
-
+const DEV = global.DEV || false
 const errLog = global.errLog
 
 class Menu {
 	constructor(opts) {
-		console.log(NAME, 'menu() constructor', Object.keys(opts))
+		DEV && console.log(NAME, 'menu() constructor', Object.keys(opts))
 
 		this.init(opts)
 	}
 
 	async init({ id, app }) {
-		console.log(NAME, 'start init()')
+		DEV && console.log(NAME, 'start init()')
 		const session = app.sessions[id]
 		const textFrame = app.texts.getFrameTextBySession(session)
 		const tf = [...textFrame]
 
-		console.log(NAME, 'init(), try app.send()')
+		DEV && console.log(NAME, 'init(), try app.send()')
 		const sendRes = await app.send(id, {
 			type: 'sendMessage',
 			data: tf
 		})
 			.catch(err => errLog(NAME, 'init(), app.send', err))
 
-		console.log(NAME, 'end init()')
+		DEV && console.log(NAME, 'end init()')
 		return sendRes
 		// return Promise.resolve()
 	}

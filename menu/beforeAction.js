@@ -1,7 +1,5 @@
 const NAME = 'beforeAction.js'
-
-console.log(NAME, 'menu/before action')
-
+const DEV = global.DEV || false
 const services = global.services
 
 function f(id) {
@@ -78,7 +76,7 @@ function f(id) {
 	}
 
 	if (menu.hasBanned) {
-		// console.log(4)
+		// DEV && console.log(4)
 		menu.answer = '--- === YOU ARE BANNED *<;] --- === \n'
 		menu.path = 'start'
 		menu.keyboardPath = 'start'

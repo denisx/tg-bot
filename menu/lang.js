@@ -1,16 +1,16 @@
 const NAME = 'lang.js'
 
-console.log(NAME, 'menu/lang')
+DEV && console.log(NAME, 'menu/lang')
 
 const texts = global.texts
 
 function f(id) {
-	console.log(NAME, 'function - menu/lang')
+	DEV && console.log(NAME, 'function - menu/lang')
 
 	const menu = self.menu[id]
 	this.menu = menu
-	console.log()
-	console.log(NAME, 'on lang', menu.userText)
+	DEV && console.log()
+	DEV && console.log(NAME, 'on lang', menu.userText)
 	menu.answer = ''
 	menu.keyboardPath = 'lang'
 

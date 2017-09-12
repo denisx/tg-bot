@@ -1,8 +1,12 @@
-const NAME = 'bot.js'
 const Telegraf = require('telegraf')
 const textsApp = require('../lang/text')
 const menuApp = require('../lang/menu')
 const servicesApp = require('../services')
+
+const NAME = 'bot.js'
+const DEV = global.DEV || false
+const LOG = global.LOG || false
+
 // const { Extra, Markup } = require('telegraf/lib')
 
 const errLog = global.errLog
@@ -10,7 +14,7 @@ const errLog = global.errLog
 
 class App {
 	constructor(opts) {
-		console.log(NAME, 'App() constructor', Object.keys(opts))
+		DEV && console.log(NAME, 'App() constructor', Object.keys(opts))
 
 		this.opts = opts
 		this.timerDelay = /* 1 min */ 1.2 * 60 * 1000
@@ -43,8 +47,8 @@ class App {
 		this.texts.setOpts({ menu: this.menu })
 		this.menu.setOpts({ texts: this.texts })
 
-		console.log(NAME, 'constructor()', this.services.getDT(), opts.bot.username)
-		console.log()
+		DEV && console.log(NAME, 'constructor()', this.services.getDT(), opts.bot.username)
+		DEV && console.log()
 	}
 	// end constructor
 
@@ -80,16 +84,16 @@ class App {
 				}
 			}
 
-			console.log()
-			console.log(NAME, '=== === ===')
-			console.log(NAME, 'init()', this.services.getDT(), ctx.update)
+			LOG && console.log()
+			LOG && console.log(NAME, '=== === ===')
+			LOG && console.log(NAME, 'init()', this.services.getDT(), ctx.update)
 
 			if (ctx.update.callback_query) {
-				console.log(NAME, '=== callback_query')
-				console.log(NAME, 'init()', this.services.getDT(), ctx.update.callback_query.message)
+				LOG && console.log(NAME, '=== callback_query')
+				LOG && console.log(NAME, 'init()', this.services.getDT(), ctx.update.callback_query.message)
 			}
 
-			console.log(NAME, '===')
+			LOG && console.log(NAME, '===')
 
 			if (this.opts.botan.token) {
 				this.services.botanio({
@@ -132,10 +136,10 @@ class App {
 	// end init
 
 	async botInput(id) {
-		console.log(NAME, 'start botInput()')
+		DEV && console.log(NAME, 'start botInput()')
 		const session = this.sessions[id]
 
-		// console.log(333, session.inWork,
+		// DEV && console.log(333, session.inWork,
 		// 	session.data.length,
 		// 	session.inInput,
 		// 	this.storage[id].length
@@ -174,8 +178,8 @@ class App {
 
 		session.dropUserText = false
 
-		console.log(NAME, 'botInput()', 'current session', session.userInput)
-		console.log()
+		DEV && console.log(NAME, 'botInput()', 'current session', session.userInput)
+		DEV && console.log()
 
 		if (session.isCallbackQuery) {
 			// this.send(id, {
@@ -214,10 +218,10 @@ class App {
 		const stateFunc = this.menu.getMenu('default')
 
 		if (stateFunc) {
-			console.log(NAME, 'botInput()', 'run state func', 'default')
+			DEV && console.log(NAME, 'botInput()', 'run state func', 'default')
 			await stateFunc({ id, app: this })
 				.catch(err => errLog(NAME, 'stateFunc', err))
-			console.log(NAME, 'botInput()', 'end state func', 'default')
+			DEV && console.log(NAME, 'botInput()', 'end state func', 'default')
 		}
 	}
 	// end botInput
@@ -226,7 +230,7 @@ class App {
 	 * prepare and format send object
 	 */
 	async send(id, opts) {
-		console.log(NAME, 'start send()')
+		DEV && console.log(NAME, 'start send()')
 
 		const session = this.sessions[id]
 
@@ -277,7 +281,7 @@ class App {
 			})
 		}
 
-		console.log(NAME, 'send(), check - inWork, data', session.inWork, session.data.length)
+		DEV && console.log(NAME, 'send(), check - inWork, data', session.inWork, session.data.length)
 
 		if (session.inWork || session.data.length === 0) {
 			if (session.data.length === 0) {
@@ -285,7 +289,7 @@ class App {
 				this.botInput(id)
 			}
 
-			console.log(NAME, 'send() return 3948', session.inWork, session.data.length)
+			DEV && console.log(NAME, 'send() return 3948', session.inWork, session.data.length)
 			return Promise.resolve()
 		}
 
@@ -295,7 +299,7 @@ class App {
 
 		let replyName
 
-		console.log(NAME, 'send(), switch item.type', item.type)
+		DEV && console.log(NAME, 'send(), switch item.type', item.type)
 		switch (item.type) {
 			case 'sendMessage':
 				replyName = 'replyWithHTML'
@@ -348,7 +352,7 @@ class App {
 		const replyRes = await this.reply(id, item, replyName)
 			.catch(err => errLog(NAME, 'this.reply', err))
 
-		console.log(NAME, 'end send()')
+		DEV && console.log(NAME, 'end send()')
 		return replyRes
 	}
 	// end send
@@ -357,7 +361,7 @@ class App {
 	 * use telegram-framework here, send
 	 */
 	async reply(id, item, func) {
-		console.log(NAME, 'start reply()')
+		DEV && console.log(NAME, 'start reply()')
 
 		const session = this.sessions[id]
 		const data = item.data
@@ -398,7 +402,7 @@ class App {
 				return errLog('bot.js - reply', 'no item.type', item.type)
 		}
 
-		console.log(NAME, 'reply()', func)
+		DEV && console.log(NAME, 'reply()', func)
 
 		if (!session.hasAnswerCallbackQuery && new Date() - session.dtStart > this.answerCallbackQueryDelay) {
 			session.hasAnswerCallbackQuery = true
@@ -406,7 +410,7 @@ class App {
 			await this.send(id, {
 				type: 'answerCallbackQuery'
 			})
-				.catch(err => errLog(NAME, 'this.send', err))
+				.catch(err => errLog(NAME, 'this.send()', err))
 		}
 
 		// send
@@ -415,7 +419,7 @@ class App {
 				session.hasAnswerCallbackQuery = true
 
 				if (item.callbackQueryId) {
-					// console.log(11, item, text)
+					// DEV && console.log(11, item, text)
 					//										callbackQueryId, text, url, showAlert, cacheTime
 					const res = await this.bot
 						.telegram.answerCallbackQuery(item.callbackQueryId, text, undefined, !!item.showAlert)
@@ -452,6 +456,8 @@ class App {
 			}
 
 			default: {
+				LOG && console.log('state =', session.state)
+
 				const res = await session.ctx[func](text, markup)
 					.catch(err => errLog(NAME, 'session.ctx[func]', err))
 
@@ -459,13 +465,13 @@ class App {
 			}
 		}
 
-		console.log(NAME, 'end reply()')
+		DEV && console.log(NAME, 'end reply()')
 		Promise.resolve()
 	}
 	// end reply
 
 	next(id, res, text, markup) {
-		console.log(NAME, 'start next()')
+		DEV && console.log(NAME, 'start next()')
 		this.catchAnswer(id, res, text, markup)
 	}
 	// end next
@@ -473,10 +479,10 @@ class App {
 	catchAnswer(id, res, text, markup) {
 		// const session = this.sessions[id]
 
-		// console.log()
-		// console.log()
-		// console.log('catchAnswer', session.id, res, !!text, !!markup)
-		// console.log()
+		// DEV && console.log()
+		// DEV && console.log()
+		// DEV && console.log('catchAnswer', session.id, res, !!text, !!markup)
+		// DEV && console.log()
 		if (!res) {
 			errLog('catchAnswer', '!res', { id, res, text, markup })
 		}
@@ -500,7 +506,7 @@ class App {
 
 	async runState(id) {
 		const session = this.sessions[id]
-		console.log(NAME, 'start runState()', session.state)
+		DEV && console.log(NAME, 'start runState()', session.state)
 
 		if (!session) {
 			return errLog(NAME, 'no session')
@@ -528,7 +534,7 @@ class App {
 				session.state = userInput.command
 				session.dropUserText = true
 				this.dropUserText(id)
-				// console.log('state changed (1) from', session.stateOld, 'to', userInput.command)
+				// DEV && console.log('state changed (1) from', session.stateOld, 'to', userInput.command)
 			}
 
 			if (session.lang) {
@@ -561,7 +567,7 @@ class App {
 			session.stateOld = session.state
 			session.state = this.defaultState
 			stateFunc = this.menu.getMenu(session.state)
-			// console.log('state changed (2) from', session.stateOld, 'to', this.defaultState)
+			// DEV && console.log('state changed (2) from', session.stateOld, 'to', this.defaultState)
 		}
 
 		if (session.stateOld !== session.state) {
@@ -570,16 +576,16 @@ class App {
 		}
 
 		if (stateFunc && !onceState) {
-			console.log(NAME, 'runState', 345, session.state)
+			DEV && console.log(NAME, 'runState', 345, session.state)
 			await stateFunc({ id, app: this })
 				.catch(err => errLog(NAME, 'stateFunc', err))
 
 			session.inInput = false
 			this.botInput(id)
 		} else {
-			console.log(NAME, 'runState', 346, onceState)
+			DEV && console.log(NAME, 'runState', 346, onceState)
 			if (onceState) {
-				console.log(NAME, 'runState', 347, onceState)
+				DEV && console.log(NAME, 'runState', 347, onceState)
 				await this.send(id, {
 					type: 'sendMessage',
 					data: this.texts.getFrameText(session.lang, onceState)
@@ -597,13 +603,13 @@ class App {
 			this.botInput(id)
 		}
 
-		console.log(NAME, 'runState end')
+		DEV && console.log(NAME, 'runState end')
 		return Promise.resolve()
 	}
 	// end runState
 
 	timer() {
-		// console.log('timer start')
+		// DEV && console.log('timer start')
 		const now = new Date()
 		const count = {
 			session: 0,
@@ -626,11 +632,11 @@ class App {
 			} else {
 				count.session++
 			}
-			// console.log(88, key, session.inWork)
+			// DEV && console.log(88, key, session.inWork)
 
 			if (session.inWork && now - this.workDelay > session.ping) {
-				console.log(NAME, 'timer', 'user', `${id} session.inWork = ${session.inWork}`)
-				console.log(NAME, `is ON !#!#! queue = ${session.data.length}`)
+				DEV && console.log(NAME, 'timer', 'user', `${id} session.inWork = ${session.inWork}`)
+				DEV && console.log(NAME, `is ON !#!#! queue = ${session.data.length}`)
 				session.inWork = false
 				this.send(id)
 					.catch(err => errLog(NAME, 'this.send', err))
@@ -640,11 +646,11 @@ class App {
 		})
 
 		if (count.was > 0) {
-			console.log(NAME, this.services.getDT(), 'users in memory', count)
+			DEV && console.log(NAME, this.services.getDT(), 'users in memory', count)
 		}
 
 		setTimeout(() => this.timer(), this.timerDelay)
-		// console.log('timer end')
+		// DEV && console.log('timer end')
 	}
 	// end timer
 }

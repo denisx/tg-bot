@@ -1,12 +1,12 @@
-const NAME = 'menu.js'
-
 const tree = require('./tree')
 
+const NAME = 'menu.js'
 const errLog = global.errLog
+const DEV = global.DEV || false
 
 class LangMenu {
 	constructor(opts) {
-		console.log(NAME, 'LangMenu() constructor', Object.keys(opts))
+		DEV && console.log(NAME, 'LangMenu() constructor', Object.keys(opts))
 
 		this.opts = opts
 		this.commands = ['start']
@@ -54,7 +54,7 @@ class LangMenu {
 			return errLog('getMenu', 'nothing state =', state)
 		}
 
-		console.log(NAME, 'end getMenu()', state)
+		DEV && console.log(NAME, 'end getMenu()', state)
 		return this.menu[state]
 	}
 

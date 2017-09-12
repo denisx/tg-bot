@@ -1,16 +1,17 @@
 // 1. get code: self.fixedCharCodeAt(msg.text, i)
 // 2. use unicode helper: http://r12a.github.io/apps/conversion/
 
-const NAME = 'text.js'
-
 const { Extra, Markup } = require('telegraf/lib')
 const emoji = require('node-emoji').emoji
+
+const NAME = 'text.js'
+const DEV = global.DEV || false
 
 const errLog = global.errLog
 
 class TextApp {
 	constructor(opts) {
-		console.log(NAME, 'TextApp() constructor', Object.keys(opts))
+		DEV && console.log(NAME, 'TextApp() constructor', Object.keys(opts))
 
 		this.opts = opts
 

@@ -43,7 +43,8 @@ const settings = {
 	tgBot: require('./settings')[hostname]
 }
 
-global.DEV = settings.tgBot.dev || false
+global.DEV = false // settings.tgBot.dev || false
+global.LOG = true // settings.tgBot.dev || false
 
 global.SYSErr = (err) => {
 	let data = {}

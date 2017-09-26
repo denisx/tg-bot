@@ -29,10 +29,12 @@ class TextApp {
 		// this.line = '\r\n'
 		this.emoji = emoji
 	}
+	// end constructor()
 
 	setOpts({ menu }) {
 		this.menu = menu
 	}
+	// end setOpts()
 
 	getData(lang, abbr) {
 		if (!lang) {
@@ -41,6 +43,7 @@ class TextApp {
 
 		return this.text[lang][abbr]
 	}
+	// end getData()
 
 	getText(lang, abbr, rep) {
 		if (!lang) {
@@ -63,7 +66,7 @@ class TextApp {
 				}
 				text = text.replace(/(\$\{emoji\.)([a-z0-9_-]+)(\})/g, (s, s1, s2) => {
 					if (!emoji[s2]) {
-						errLog('error emoji', s2)
+						errLog(NAME, 'getText(), no', s2, 'at emoji[]')
 					}
 
 					return emoji[s2] || s2
@@ -81,10 +84,12 @@ class TextApp {
 
 		return ''
 	}
+	// end getText()
 
 	getFrameTextBySession(session) {
 		return this.getFrameText(session.lang, session.state)
 	}
+	// end getFrameTextBySession()
 
 	getFrameText(lang, state) {
 		if (!lang || !state) {
@@ -129,6 +134,7 @@ class TextApp {
 
 		return res
 	}
+	// end getFrameText()
 
 	getInlineKeyboard(lang, m) {
 		if (!m) {
@@ -152,6 +158,7 @@ class TextApp {
 
 		return obj
 	}
+	// end getInlineKeyboard()
 
 	getKeyboard(lang, m, opts = {}) {
 		if (!m) {
@@ -177,17 +184,20 @@ class TextApp {
 		// Markup.keyboard(obj).resize().extra()
 		return Extra.markup(Markup.keyboard(obj).resize()).webPreview(opts.webPreview)
 	}
+	// end getKeyboard()
 
-	static inlineMarkup(m) {
+	inlineMarkup(m) {
 		return Markup.callbackButton(m[0], m[1])
 	}
+	// end inlineMarkup()
 
-	static markupAll(m, opts = {}) {
+	markupAll(m, opts = {}) {
 		return Extra
 			.webPreview(opts.webPreview)
 			.HTML() // eslint-disable-line new-cap
 			.markup(Markup.inlineKeyboard(m))
 	}
+	// end markupAll()
 }
 
 module.exports = (opts) => {

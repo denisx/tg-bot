@@ -13,25 +13,21 @@ class Menu {
 		DEV && console.log(NAME, 'start init()')
 		const session = app.sessions[id]
 
-		if (session.isCallbackQuery) {
-			if (session.cbData && session.cbData.st) {
-				session.state = session.cbData.st
-				session.dropUserText = true
-				// await app.services.saveState(id)
-				// await app.next(id)
-				// app.botInput(id)
+		const userInput = session.userInput
+		console.log(123, userInput)
 
-				console.log(222)
-				const sendRes = await app.runState(id)
+		if (userInput && userInput.text) {
+			const accepted = app.menu.checkKeyBoardAcceptedBySession(session)
 
-				return sendRes
+			if (accepted && accepted.length) {
+				console.log('y', accepted)
+			} else {
+				console.log('n')
 			}
 		}
 
 		const textFrame = app.texts.getFrameTextBySession(session)
 		const tf = [...textFrame]
-
-		console.log(1, tf)
 
 		const sendRes = await app.send(id, {
 			type: 'sendMessage',

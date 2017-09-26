@@ -29,11 +29,13 @@ class Menu {
 				DEV && console.log(NAME, 'find a user', 11, userSettings)
 				session.settings = userSettings
 				session.lang = session.settings.lang
+				session.stateOld = session.settings.state
 				session.state = session.settings.state
 			} else {
 				// new user
 				DEV && console.log(NAME, 'new user', 22)
 				session.lang = app.defaultLang
+				session.stateOld = app.defaultState
 				session.state = app.defaultState
 
 				await services.saveUser(id)

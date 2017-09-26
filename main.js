@@ -17,7 +17,7 @@ function getDT(dt) {
 }
 
 global.errLog = (name, desc, err, param) => {
-	console.error(getDT(), name, desc, err, param)
+	console.log(' --- === --- ', getDT(), name, desc, err, param)
 	// if (cb && typeof cb === 'function') {
 	// 	cb(err)
 	// }
@@ -43,7 +43,8 @@ const settings = {
 	tgBot: require('./settings')[hostname]
 }
 
-global.DEV = false // settings.tgBot.dev || false
+global.DEV = true // settings.tgBot.dev || false
+// global.DEV = false // settings.tgBot.dev || false
 global.LOG = true // settings.tgBot.dev || false
 
 global.SYSErr = (err) => {

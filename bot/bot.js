@@ -29,7 +29,8 @@ class App {
 
 		this.defaultOpts = {
 			botName: opts.bot.username,
-			line: '\r\n'
+			br: '\r\n',
+			nbsp: '\u00A0'
 		}
 
 		this.requestParams = {
@@ -47,15 +48,15 @@ class App {
 		this.texts.setOpts({ menu: this.menu })
 		this.menu.setOpts({ texts: this.texts })
 
-		DEV && console.log(NAME, 'constructor()', this.services.getDT(), opts.bot.username)
-		DEV && console.log()
+		LOG && console.log(NAME, 'constructor()', this.services.getDT(), opts.bot.username)
+		LOG && console.log()
 	}
 	// end constructor
 
 	async init() {
 		this.sessions = {}
 		this.storage = {}
-		this.timer()
+		// this.timer()
 
 		this.bot = new Telegraf(this.opts.bot.token)
 		const bot = this.bot
@@ -70,12 +71,16 @@ class App {
 
 			if (ctx.update) {
 				msg = ctx.update.message || ctx.update.callback_query.message || null
+
+				// console.log()
+				// console.log(333, ctx.update)
+				// console.log()
 			} else {
 				return errLog(NAME, 'init', ctx)
 			}
 
 			if (!msg) {
-				errLog('empty inside ctx.update, ctx.update=', ctx.update)
+				errLog(NAME, 'empty inside ctx.update, ctx.update=', ctx.update)
 			}
 
 			if (this.opts.bot.dev) {
@@ -108,7 +113,7 @@ class App {
 			}
 
 			const id = this.services.getId({
-				fromId: msg.from.id,
+				fromId: ctx.update.callback_query ? msg.chat.id : msg.from.id,
 				chatId: msg.chat.id
 			})
 
@@ -179,13 +184,16 @@ class App {
 		session.dropUserText = false
 
 		DEV && console.log(NAME, 'botInput()', 'current session', session.userInput)
+		DEV && console.log(NAME, 'botInput()', 'current state', session.state)
 		DEV && console.log()
 
 		if (session.isCallbackQuery) {
 			// this.send(id, {
 			// 	type: 'answerCallbackQuery'
 			// })
-			// 	.catch(err => errLog(NAME, 'this.send', err))
+			// 	.catch(err => errLog(NAME, 'this.send()', err))
+
+			// console.log(222, ctx.update.callback_query.data)
 
 			session.hasAnswerCallbackQuery = false
 			session.cbData = JSON.parse(ctx.update.callback_query.data)
@@ -203,14 +211,14 @@ class App {
 		if (msg.chat.type !== 'private') {
 			const sendRes = await this.send(id, {
 				type: 'sendMessage',
-				data: [this.texts.getText(this.defaultLang, 'groupInfo',
+				data: [this.texts.getText(this.defaultLang, 'groupText',
 					{
 						line: this.defaultOpts.line,
 						botName: this.opts.bot.username
 					}
 				)]
 			})
-				.catch(err => errLog(NAME, 'this.send', err))
+				.catch(err => errLog(NAME, 'this.send()', err))
 
 			return sendRes
 		}
@@ -223,6 +231,8 @@ class App {
 				.catch(err => errLog(NAME, 'stateFunc', err))
 			DEV && console.log(NAME, 'botInput()', 'end state func', 'default')
 		}
+
+		return Promise.resolve()
 	}
 	// end botInput
 
@@ -234,6 +244,7 @@ class App {
 
 		const session = this.sessions[id]
 
+		// put data to base, if it is
 		if (opts) {
 			const {
 				type,
@@ -259,7 +270,13 @@ class App {
 						break
 					}
 
+					case 'sendMessage': {
+						chatActionText = 'typing'
+						break
+					}
+
 					default: {
+						errLog(NAME, 'not approved type, chatActionText=', chatActionText)
 						chatActionText = 'typing'
 					}
 				}
@@ -286,7 +303,8 @@ class App {
 		if (session.inWork || session.data.length === 0) {
 			if (session.data.length === 0) {
 				// session.inInput = false
-				this.botInput(id)
+				await this.botInput(id)
+					.catch(err => errLog(NAME, 'botInput', err))
 			}
 
 			DEV && console.log(NAME, 'send() return 3948', session.inWork, session.data.length)
@@ -320,8 +338,9 @@ class App {
 				break
 
 			default:
-				errLog('bot.js send', 'default case', item.type)
+				errLog(NAME, 'default case', 'bot.js send "item.type"', item.type)
 				this.next(id)
+				return Promise.resolve()
 		}
 
 		if (replyName && ['sendMessage'].includes(item.type)) {
@@ -350,7 +369,7 @@ class App {
 		}
 
 		const replyRes = await this.reply(id, item, replyName)
-			.catch(err => errLog(NAME, 'this.reply', err))
+			.catch(err => errLog(NAME, 'this.reply()', err))
 
 		DEV && console.log(NAME, 'end send()')
 		return replyRes
@@ -399,12 +418,15 @@ class App {
 				break
 
 			default:
-				return errLog('bot.js - reply', 'no item.type', item.type)
+				return errLog(NAME, 'bot.js - reply', 'no item.type', item.type)
 		}
 
 		DEV && console.log(NAME, 'reply()', func)
 
-		if (!session.hasAnswerCallbackQuery && new Date() - session.dtStart > this.answerCallbackQueryDelay) {
+		if (session.isCallbackQuery &&
+			!session.hasAnswerCallbackQuery &&
+			new Date() - session.dtStart > this.answerCallbackQueryDelay) {
+
 			session.hasAnswerCallbackQuery = true
 
 			await this.send(id, {
@@ -423,7 +445,7 @@ class App {
 					//										callbackQueryId, text, url, showAlert, cacheTime
 					const res = await this.bot
 						.telegram.answerCallbackQuery(item.callbackQueryId, text, undefined, !!item.showAlert)
-						.catch(err => errLog(NAME, 'this.bot.telegram.answerCallbackQuery', err))
+						.catch(err => errLog(NAME, 'this.bot.telegram.answerCallbackQuery()', err))
 
 					this.next(id, res, text, markup)
 				} else {
@@ -439,7 +461,7 @@ class App {
 			case 'editMessageReplyMarkup': {
 				const res = await this.bot
 					.telegram.editMessageReplyMarkup(item.id, item.messageId, undefined, markup.reply_markup)
-					.catch(err => errLog(NAME, 'this.bot.telegram.editMessageReplyMarkup', err))
+					.catch(err => errLog(NAME, 'this.bot.telegram.editMessageReplyMarkup()', err))
 
 				this.next(id, res, text, markup)
 				break
@@ -448,7 +470,7 @@ class App {
 			case 'editMessageText': {
 				const res = await this.bot
 					.telegram.editMessageText(item.id, item.messageId, undefined, text, markup)
-					.catch(err => errLog(NAME, 'this.bot.telegram.editMessageText', err))
+					.catch(err => errLog(NAME, 'this.bot.telegram.editMessageText()', err))
 
 				this.next(id, res, text, markup)
 
@@ -470,9 +492,14 @@ class App {
 	}
 	// end reply
 
+	// next step, log server answer
 	next(id, res, text, markup) {
-		DEV && console.log(NAME, 'start next()')
+		DEV && console.log(NAME, 'start next() step')
+
+		// break all cover resolvers
+		// setTimeout(() => {
 		this.catchAnswer(id, res, text, markup)
+		// }, 10)
 	}
 	// end next
 
@@ -484,7 +511,7 @@ class App {
 		// DEV && console.log('catchAnswer', session.id, res, !!text, !!markup)
 		// DEV && console.log()
 		if (!res) {
-			errLog('catchAnswer', '!res', { id, res, text, markup })
+			errLog(NAME, 'catchAnswer', '!res', { id, res, text, markup })
 		}
 
 		const session = this.sessions[id]
@@ -516,6 +543,10 @@ class App {
 		// 	return Promise.resolve()
 		// }
 
+		if (session.dropUserText) {
+			this.dropUserText(id)
+		}
+
 		const userInput = session.userInput
 
 		if (!session.state) {
@@ -524,12 +555,20 @@ class App {
 			session.state = this.defaultState
 		}
 
+		if (!session.stateOld) {
+			session.stateOld = session.state
+		}
+
 		let onceState
 		let newState
 
-		if (userInput.text) {
+		if (userInput && userInput.text) {
 			// need for '/commands' ?
-			if (!session.dropUserText && this.menu.checkCommand(userInput.command)) { //  && !session.priority
+			if (!session.dropUserText &&
+				userInput.command &&
+				this.menu.checkCommand(userInput.command)) {
+
+				// && !session.priority
 				session.stateOld = session.state
 				session.state = userInput.command
 				session.dropUserText = true
@@ -541,15 +580,16 @@ class App {
 				// check keyboard callback
 				let textState
 
-				[textState, newState] = this.menu.checkKeyboardAccepted(session.lang, session.state, userInput.text)
-				textState = textState || null
+				[textState, newState] = this.menu.checkKeyBoardAcceptedBySession(session)
+				textState = textState || null // foo line, to disable prev line, eslint
+
+				// console.log(888, textState, newState)
 
 				if (newState) {
 					if (newState !== session.state) {
 						session.stateOld = session.state
 						session.state = newState
 						session.dropUserText = true
-						this.dropUserText(id)
 					}
 				} else {
 					onceState = textState
@@ -561,7 +601,11 @@ class App {
 			this.dropUserText(id)
 		}
 
-		let stateFunc = this.menu.getMenu(session.state)
+		let stateFunc
+
+		if (session.state) {
+			stateFunc = this.menu.getMenu(session.state)
+		}
 
 		if (!stateFunc) {
 			session.stateOld = session.state
@@ -570,7 +614,9 @@ class App {
 			// DEV && console.log('state changed (2) from', session.stateOld, 'to', this.defaultState)
 		}
 
-		if (session.stateOld !== session.state) {
+		// console.log(777, session.stateOld, session.state, onceState)
+
+		if (session.stateOld && session.stateOld !== session.state) {
 			this.services.saveState(session.id)
 				.catch(err => errLog(NAME, 'save new state', err))
 		}
@@ -581,7 +627,8 @@ class App {
 				.catch(err => errLog(NAME, 'stateFunc', err))
 
 			session.inInput = false
-			this.botInput(id)
+			await this.botInput(id)
+				.catch(err => errLog(NAME, 'botInput', err))
 		} else {
 			DEV && console.log(NAME, 'runState', 346, onceState)
 			if (onceState) {
@@ -590,17 +637,18 @@ class App {
 					type: 'sendMessage',
 					data: this.texts.getFrameText(session.lang, onceState)
 				})
-					.catch(err => errLog(NAME, 'this.send', err))
+					.catch(err => errLog(NAME, 'this.send()', err))
 			}
 
 			await this.send(id, {
 				type: 'sendMessage',
 				data: this.texts.getFrameTextBySession(session)
 			})
-				.catch(err => errLog(NAME, 'this.send', err))
+				.catch(err => errLog(NAME, 'this.send()', err))
 
 			session.inInput = false
-			this.botInput(id)
+			await this.botInput(id)
+				.catch(err => errLog(NAME, 'botInput', err))
 		}
 
 		DEV && console.log(NAME, 'runState end')
@@ -625,7 +673,7 @@ class App {
 				count.killed++
 
 				if (session.inWork) {
-					errLog('timer', 'still inWork', id)
+					errLog(NAME, 'timer', 'still inWork', id)
 				}
 
 				delete this.sessions[id]
@@ -639,7 +687,7 @@ class App {
 				DEV && console.log(NAME, `is ON !#!#! queue = ${session.data.length}`)
 				session.inWork = false
 				this.send(id)
-					.catch(err => errLog(NAME, 'this.send', err))
+					.catch(err => errLog(NAME, 'this.send()', err))
 			}
 
 			count.was++
@@ -657,7 +705,7 @@ class App {
 
 module.exports = (opts) => {
 	if (!opts) {
-		return errLog('bot', 'exports', 'no opts')
+		return errLog(NAME, 'bot', 'exports', 'no opts')
 	}
 
 	return new App(opts)

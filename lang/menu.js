@@ -1,3 +1,19 @@
+/* rule for inline callbacks
+ *
+ * for button, make [lang abbr text, {callbacks} | callback text(? check it)]
+ *
+ * callbacks rule:
+ * 	state	st: this.cbName
+ * 	text	te: this.numberText
+ * 	data	da: data
+ *
+ * for 64(? check here) symbols length
+ */
+
+/* rule for state without file (text only)
+ *	noFile: 1
+ */
+
 const tree = require('./tree')
 
 const NAME = 'menu.js'
@@ -28,7 +44,7 @@ class LangMenu {
 	}
 
 	checkCommand(command) {
-		return !!this.commands.filter(el => el === command).length
+		return this.commands.includes(command)
 	}
 
 	preLoad() {
@@ -77,24 +93,34 @@ class LangMenu {
 		return accepted || ''
 	}
 
+	checkKeyBoardAcceptedBySession(session) {
+		if (!session.userInput || !session.userInput.text) {
+			return ''
+		}
+
+		return this.checkKeyboardAccepted(session.lang, session.state, session.userInput.text)
+	}
+
 	checkKeyboardAccepted(lang, state, text) {
 		if (!tree[state]) {
 			return errLog('checkKeyboardAccepted', 'nothing state = ', state)
 		}
 
 		let accepted = false
-		const inline = tree[state].keyboard || []
+		const keyboard = tree[state].keyboard || []
 
-		inline.forEach((line) => {
+		keyboard.forEach((line) => {
 			line.forEach((el) => {
-				if (!accepted) {
-					if (typeof el === 'string') {
-						if (text === this.texts.getText(lang, el)) {
-							accepted = [el]
-						}
-					} else if (text === this.texts.getText(lang, el[0])) {
-						accepted = el
+				if (accepted) {
+					return
+				}
+
+				if (typeof el === 'string') {
+					if (text === this.texts.getText(lang, el)) {
+						accepted = [el, el] // accepted = [el]
 					}
+				} else if (text === this.texts.getText(lang, el[0])) {
+					accepted = el
 				}
 			})
 		})

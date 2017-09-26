@@ -1,0 +1,34 @@
+async botInput(id) 
+
+
+// call file from ./menu
+await stateFunc({ id, app: this }) - call default.js
+	app.runState(id) or
+	app.send
+
+
+async runState(id)
+if (stateFunc && !onceState)
+	await stateFunc
+	await this.botInput
+else
+	await this.send
+	await this.botInput(id)
+
+
+async send(id, opts)
+	if (session.data.length === 0) {
+		await this.botInput(id)
+	else
+		this.reply
+
+
+async reply
+	call (pre) app.reply
+	
+	call telegram protocol
+	this.next(id, res, text, markup)
+	
+	
+next()
+	this.send

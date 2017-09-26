@@ -3,23 +3,23 @@ class Lang {
 		return {
 			ru: 'Русский',
 			en: 'English',
-			// portugal: 'Португальский',
-			// chinese: 'Китайский',
-
-			hi: 'Привет!',
-			start: 'Напишите первый вопрос для своего опроса:',
-			groupInfo: 'en: Please, enter${line}ru: Пожалуйста, перейдите в${line}@${botName}',
-
-			chooseLang: 'Выберите язык${line}Choose language',
+			hiText: 'Привет!',
+			startText: 'Какой будет опрос?',
+			likeType: 'Быстрый ${emoji.star}',
+			pollType: 'Обычный',
+			lang: 'Язык',
 			settings: 'Настройки',
+			enterQuestion: 'Напишите первый вопрос:',
+			groupText: 'en: Please, enter${br}ru: Пожалуйста, перейдите в${br}@${botName}',
+			chooseLang: 'Выберите язык${br}Choose language',
 			saveLangOK: 'Настройки сохранены - ${lang}',
-			home: 'В начало',
-
-			likes: '\u2B50\uFE0F\u2B50\uFE0F\u2B50\uFE0F\u2B50\uFE0F\u2B50\uFE0F',
-			likesInfo: 'Понравился бот? ${emoji.robot_face} Ставьте пять!${line}' +
-				'1. Перейдите в бот <a href="https://t.me/storebot?start=${botName}">@StoreBot</a>${line}' +
-				'2. Нажмите там <i>Start</i>${line}' +
-				'3. Поставьте оценку${line}' +
+			startKeyboard: 'В начало',
+			likes: '${emoji.star}${emoji.star}${emoji.star}${emoji.star}${emoji.star}',
+			nbsp: '${nbsp}',
+			likesText: 'Понравился бот? ${emoji.robot_face} Ставьте пять!${br}' +
+				'1. Перейдите в бот <a href="https://t.me/storebot?start=${botName}">@StoreBot</a>${br}' +
+				'2. Нажмите там <i>Start</i>${br}' +
+				'3. Поставьте оценку${br}' +
 				'Спасибо! ${emoji.star}${emoji.star}${emoji.star}${emoji.star}${emoji.star}',
 			// noLang: '...',
 			// cantParseNumber: 'Не распознал номер. ${emoji.warning} Попробуйте ещё раз:',

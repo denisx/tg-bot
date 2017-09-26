@@ -2,36 +2,42 @@
 	"default": {},
 
 	"start": {
-		"text": [
-			"start"
+		"text": ["hiText", "startText"],
+		"inline": [
+			[
+				["likeType", { "st": "question" }]
+			]
 		],
 		"keyboard": [
+			["likes", "lang", "settings"]
+		]
+	},
+
+	"question": {
+		"text": ["enterQuestion"],
+		"keyboard": [
 			[
+				["startKeyboard", "start"],
+				"settings"
+			],
+			[
+				"nbsp",
 				"likes"
 			]
 		]
 	},
 
 	"chooseLang": {
-		"text": ["hi", "chooseLang"],
+		"text": ["hiText", "chooseLang"],
 		"inline": [
 			[
-				[
-					"ru",
-					"ru"
-				],
-				[
-					"en",
-					"en"
-				]
+				["ru", { "te": "ru" }],
+				["en", { "te": "en" }]
 			]
 		],
 		"keyboard": [
 			[
-				[
-					"home",
-					"start"
-				]
+				["home", "start"]
 			]
 		]
 	},
@@ -39,9 +45,7 @@
 	"settings": {},
 
 	"likes": {
-		"text": [
-			"likesInfo"
-		],
+		"text": ["likesText"],
 		"noFile": 1,
 		"webPreview": false
 	}
